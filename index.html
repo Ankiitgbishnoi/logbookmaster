@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101b2d">
+<meta name="description" content="Logbook Master — Australian heavy vehicle driver logbook and work/rest calculator.">
+<title>Logbook Master | Australian Heavy Vehicle Logbook</title>
+
+<style>
+:root{
+  --navy:#101b2d;
+  --navy2:#1b2b43;
+  --blue:#3478f6;
+  --blue-light:#edf4ff;
+  --green:#119b72;
+  --amber:#e4a13b;
+  --red:#d94343;
+  --bg:#f3f6fb;
+  --white:#fff;
+  --text:#202b3b;
+  --muted:#758197;
+  --border:#e4e9f1;
+  --radius:16px;
+  --shadow:0 4px 18px rgba(24,40,65,.035);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  font-size:14px;line-height:1.5
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid #3478f655;outline-offset:2px
+}
+a{color:var(--blue)}
+.app{min-height:100vh}
+.sidebar{
+  position:fixed;inset:0 auto 0 0;width:252px;background:var(--navy);
+  color:#fff;padding:25px 17px;display:flex;flex-direction:column;z-index:10
+}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px 27px}
+.brand-icon{
+  width:44px;height:44px;border-radius:13px;background:var(--blue);
+  display:grid;place-items:center;font-size:24px;flex-shrink:0
+}
+.brand strong{display:block;font-size:19px;letter-spacing:-.5px}
+.brand small{display:block;color:#a8b9cf;font-size:10px;letter-spacing:1.4px}
+.nav-label{padding:12px;font-size:10px;letter-spacing:1.8px;color:#879bb4}
+.nav{display:grid;gap:4px}
+.nav button{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:12px;border:0;border-radius:10px;background:transparent;color:#c3cede;
+  font-weight:500
+}
+.nav button:hover,.nav button.active{background:#263953;color:#fff}
+.nav .nav-icon{width:22px;text-align:center;font-size:18px}
+.sidebar-bottom{margin-top:auto;border-top:1px solid #33445c;padding:17px 8px 0}
+.sidebar-bottom small{color:#a3b3c6}
+.main{margin-left:252px;min-height:100vh}
+.topbar{
+  height:77px;background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  gap:15px;padding:0 32px
+}
+.topbar h2{margin:0;font-size:18px;letter-spacing:-.3px}
+.topbar p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.top-actions{display:flex;align-items:center;gap:12px}
+.top-pill{border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-size:12px}
+.avatar{
+  display:grid;place-items:center;width:39px;height:39px;border-radius:50%;
+  background:#e4edff;color:#245dc0;font-weight:800
+}
+.content{max-width:1500px;margin:auto;padding:28px 32px}
+.page{display:none}
+.page.active{display:block}
+.welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:23px}
+h1{font-size:27px;line-height:1.2;letter-spacing:-.9px;margin:0}
+.subtitle{margin:7px 0 0;color:var(--muted)}
+.button{
+  display:inline-flex;justify-content:center;align-items:center;gap:8px;
+  padding:10px 15px;border-radius:9px;border:1px solid transparent;
+  font-weight:650;white-space:nowrap
+}
+.primary{background:var(--blue);color:white}
+.primary:hover{background:#2266de}
+.secondary{background:#fff;border-color:var(--border);color:var(--text)}
+.secondary:hover{background:#f8fafc}
+.danger{background:#fff0f0;border-color:#ffe0e0;color:var(--red)}
+.small-button{padding:6px 9px;font-size:12px}
+.grid{display:grid;gap:17px}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:21px;box-shadow:var(--shadow);min-width:0}
+.stat-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stat-label{color:var(--muted);font-size:12px;font-weight:650}
+.stat-icon{width:39px;height:39px;border-radius:11px;display:grid;place-items:center;font-size:19px}
+.blue-bg{background:#edf4ff;color:#3478f6}
+.green-bg{background:#e7f8f1;color:#119b72}
+.amber-bg{background:#fff4e1;color:#b87b1a}
+.red-bg{background:#ffeded;color:#d94343}
+.stat-value{font-size:29px;font-weight:800;letter-spacing:-1px;margin:13px 0 1px}
+.stat-note{font-size:11px;color:var(--muted)}
+.two-col{grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);margin-bottom:18px}
+.card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+.card-heading h3{margin:0;font-size:15px;letter-spacing:-.2px}
+.card-heading p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.badge{display:inline-flex;align-items:center;border-radius:30px;padding:5px 9px;font-size:10px;font-weight:750;background:#e7f8f1;color:#087f5b}
+.badge.amber{background:#fff4e1;color:#98620e}
+.badge.red{background:#ffeded;color:#a52e2e}
+.progress-row{margin:20px 0}
+.progress-label{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px}
+.progress-label span:last-child{color:var(--muted)}
+.track{height:8px;background:#edf1f6;border-radius:20px;overflow:hidden}
+.bar{height:100%;width:0;border-radius:20px;background:var(--blue)}
+.bar.green{background:var(--green)}
+.bar.amber{background:var(--amber)}
+.notice{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.65;margin-top:15px}
+.notice.info{background:#edf4ff;color:#28568e}
+.notice.warn{background:#fff5e6;color:#805511}
+.notice.error{background:#fff0f0;color:#a52e2e}
+.activity{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--border)}
+.activity:last-child{border-bottom:0}
+.activity-icon{width:38px;height:38px;border-radius:10px;background:#f0f4fa;display:grid;place-items:center;flex-shrink:0}
+.activity-body{min-width:0;flex:1}
+.activity strong{display:block;font-size:12px}
+.activity small{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}
+.duration{font-size:12px;font-weight:750;white-space:nowrap}
+.empty{padding:30px 12px;text-align:center;color:var(--muted);font-size:13px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:700;color:#485568}
+input,select,textarea{
+  width:100%;min-width:0;border:1px solid #d8e0eb;border-radius:9px;
+  padding:11px 12px;background:#fff;color:var(--text)
+}
+textarea{resize:vertical}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:19px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:#f8fafc;color:var(--muted);font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+td{max-width:270px;overflow-wrap:anywhere}
+.small-text{color:var(--muted);font-size:11px}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:17px}
+.filter-row input,.filter-row select{max-width:260px}
+.footer-note{font-size:11px;line-height:1.8;color:var(--muted);margin:24px 0 0}
+.quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.quick-card{border:1px solid var(--border);padding:15px;border-radius:12px}
+.quick-card strong{display:block;font-size:13px}
+.quick-card p{color:var(--muted);font-size:11px;margin:5px 0 0}
+.hidden{display:none!important}
+@media(max-width:1100px){
+ .sidebar{width:215px}.main{margin-left:215px}
+ .content{padding:23px}.topbar{padding:0 23px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .two-col{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+ .sidebar{position:sticky;top:0;width:100%;height:auto;padding:10px 12px}
+ .brand{padding:0;gap:9px}.brand-icon{width:36px;height:36px;font-size:20px}
+ .brand strong{font-size:16px}.brand small{font-size:9px}
+ .nav-label,.sidebar-bottom{display:none}
+ .nav{display:flex;overflow-x:auto;gap:4px;margin-top:10px}
+ .nav button{width:auto;white-space:nowrap;padding:8px 10px;font-size:11px;gap:6px}
+ .nav .nav-icon{width:auto;font-size:14px}
+ .main{margin-left:0}
+ .topbar{height:59px;padding:0 14px}
+ .topbar h2{font-size:15px}.topbar p,.top-pill{display:none}
+ .content{padding:19px 12px}
+ .welcome{align-items:flex-start;flex-direction:column}
+ h1{font-size:23px}.welcome>.button{width:100%}
+ .stats{gap:10px}.card{padding:15px}
+ .stat-value{font-size:24px}.stat-label{font-size:11px}
+ .stat-icon{width:31px;height:31px}
+ .form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}
+ .quick-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🚛</div>
+    <div><strong>Logbook Master</strong><small>AUSTRALIAN LOGBOOK</small></div>
+  </div>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav" aria-label="Main navigation">
+    <button class="active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+    <button data-page="activity"><span class="nav-icon">＋</span>Record activity</button>
+    <button data-page="history"><span class="nav-icon">◷</span>Logbook history</button>
+    <button data-page="trips"><span class="nav-icon">↗</span>Trip records</button>
+    <button data-page="settings"><span class="nav-icon">⚙</span>My configuration</button>
+    <button data-page="help"><span class="nav-icon">ⓘ</span>Help & rules</button>
+  </nav>
+  <div class="sidebar-bottom">
+    <strong>Logbook Master</strong><br>
+    <small>Personal edition · v1.0</small>
+  </div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div><h2 id="pageTitle">Driver dashboard</h2><p id="dateLabel"></p></div>
+  <div class="top-actions"><span class="top-pill">🇦🇺 Australia</span><div class="avatar" id="avatar">LM</div></div>
+</header>
+
+<div class="content">
+
+<section class="page active" id="dashboard">
+  <div class="welcome">
+    <div><h1 id="greeting">Welcome to Logbook Master</h1><p class="subtitle">Your activity, your records, your journey.</p></div>
+    <button class="button primary" data-goto="activity">＋ Record activity</button>
+  </div>
+
+  <div class="grid stats">
+    <div class="card"><div class="stat-top"><span class="stat-label">Today's work</span><span class="stat-icon blue-bg">◷</span></div><div class="stat-value" id="todayWork">0h 00m</div><div class="stat-note">Recorded work today</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Today's rest</span><span class="stat-icon green-bg">☾</span></div><div class="stat-value" id="todayRest">0h 00m</div><div class="stat-note">Recorded rest today</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Last 7 × 24 hours</span><span class="stat-icon amber-bg">▤</span></div><div class="stat-value" id="weekWork">0h 00m</div><div class="stat-note">Elapsed-time summary</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Last 14 × 24 hours</span><span class="stat-icon red-bg">◴</span></div><div class="stat-value" id="fortnightWork">0h 00m</div><div class="stat-note">Elapsed-time summary</div></div>
+  </div>
+
+  <div class="grid two-col">
+    <div class="card">
+      <div class="card-heading"><div><h3>Work-hour overview</h3><p>Recorded activity compared with configurable references</p></div><span class="badge amber">Guidance only</span></div>
+      <div class="progress-row"><div class="progress-label"><span>Today's work</span><span id="todayProgressText">0h 00m</span></div><div class="track"><div class="bar" id="todayBar"></div></div></div>
+      <div class="progress-row"><div class="progress-label"><span>7-day recorded work</span><span id="weekProgressText">0h 00m</span></div><div class="track"><div class="bar green" id="weekBar"></div></div></div>
+      <div class="progress-row"><div class="progress-label"><span>14-day recorded work</span><span id="fortnightProgressText">0h 00m</span></div><div class="track"><div class="bar amber" id="fortnightBar"></div></div></div>
+      <div class="notice warn">These figures are arithmetic summaries, not statutory fatigue calculations. They do not determine whether a driver may legally continue driving.</div>
+    </div>
+    <div class="card">
+      <div class="card-heading"><div><h3>Driver & vehicle</h3><p>Current configuration</p></div><button class="button secondary" data-goto="settings">Edit</button></div>
+      <div class="activity"><div class="activity-icon">👤</div><div class="activity-body"><strong id="summaryName">Driver not configured</strong><small>Driver profile</small></div></div>
+      <div class="activity"><div class="activity-icon">🚛</div><div class="activity-body"><strong id="summaryVehicle">Prime mover + semi-trailer</strong><small id="summaryReg">Registration not entered</small></div></div>
+      <div class="activity"><div class="activity-icon">📋</div><div class="activity-body"><strong id="summaryOption">Standard Hours — Solo</strong><small>Selected hours option</small></div></div>
+      <div class="activity"><div class="activity-icon">📍</div><div class="activity-body"><strong id="summaryBase">Base not entered</strong><small>Driver's base location</small></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-heading"><div><h3>Recent activity</h3><p>Your latest saved entries</p></div><button class="button secondary" data-goto="history">View all</button></div>
+    <div id="recentList"></div>
+  </div>
+
+  <div class="grid quick-grid" style="margin-top:18px">
+    <div class="quick-card"><strong>📋 Keep accurate records</strong><p>Record each activity promptly and correct mistakes in your source records.</p></div>
+    <div class="quick-card"><strong>🚦 Check before driving</strong><p>Never rely on this prototype alone to decide whether you are fit or legally permitted to drive.</p></div>
+    <div class="quick-card"><strong>💾 Export a backup</strong><p>Your records are stored in this browser. Export them regularly to protect against data loss.</p></div>
+  </div>
+</section>
+
+<section class="page" id="activity">
+  <div class="welcome"><div><h1>Record activity</h1><p class="subtitle">Enter actual start and end times.</p></div></div>
+  <div class="card">
+    <div class="card-heading"><div><h3>New work/rest record</h3><p>All fields marked * are required.</p></div></div>
+    <form id="activityForm">
+      <div class="form-grid">
+        <div class="field"><label for="aType">Activity type *</label><select id="aType" required><option value="work">Work (including driving)</option><option value="rest">Rest</option></select></div>
+        <div class="field"><label for="aKind">Activity detail</label><select id="aKind"><option>Driving</option><option>Loading / unloading</option><option>Vehicle inspection / maintenance</option><option>Other work</option><option>Rest break</option><option>Stationary rest</option><option>Night rest</option><option>Other rest</option></select></div>
+        <div class="field"><label for="aStartDate">Start date *</label><input id="aStartDate" type="date" required></div>
+        <div class="field"><label for="aStartTime">Start time *</label><input id="aStartTime" type="time" required></div>
+        <div class="field"><label for="aEndDate">End date *</label><input id="aEndDate" type="date" required></div>
+        <div class="field"><label for="aEndTime">End time *</label><input id="aEndTime" type="time" required></div>
+        <div class="field"><label for="aFrom">Location / from</label><input id="aFrom" placeholder="e.g. Brisbane, QLD"></div>
+        <div class="field"><label for="aTo">Destination / to</label><input id="aTo" placeholder="e.g. Rockhampton, QLD"></div>
+        <div class="field full"><label for="aNotes">Notes</label><textarea id="aNotes" rows="3" placeholder="Trip, load, job or other details"></textarea></div>
+      </div>
+      <div class="notice info">Entries spanning midnight must use the correct end date. This prototype does not verify legal rest-break eligibility, sleeper-berth conditions or diary obligations.</div>
+      <div class="form-actions"><button class="button primary" type="submit">Save activity</button><button class="button secondary" type="reset">Clear form</button></div>
+    </form>
+  </div>
+</section>
+
+<section class="page" id="history">
+  <div class="welcome"><div><h1>Logbook history</h1><p class="subtitle">Review and export saved records.</p></div><button class="button primary" id="exportCsv">↓ Export CSV</button></div>
+  <div class="card">
+    <div class="card-heading"><div><h3>All activities</h3><p id="historyCount">0 entries</p></div><button class="button secondary" id="clearHistory">Clear all</button></div>
+    <div class="filter-row"><input id="historySearch" placeholder="Search location, activity or notes"><select id="historyType"><option value="all">All activity types</option><option value="work">Work only</option><option value="rest">Rest only</option></select></div>
+    <div class="table-wrap"><table><thead><tr><th>Start</th><th>End</th><th>Activity</th><th>Duration</th><th>Location</th><th>Notes</th><th>Action</th></tr></thead><tbody id="historyTable"></tbody></table></div>
+  </div>
+</section>
+
+<section class="page" id="trips">
+  <div class="welcome"><div><h1>Trip records</h1><p class="subtitle">Record journey details separately from activity times.</p></div></div>
+  <div class="card">
+    <div class="card-heading"><div><h3>New trip</h3><p>Trip records supplement activity records; they do not replace required work diaries.</p></div></div>
+    <form id="tripForm">
+      <div class="form-grid">
+        <div class="field"><label for="tDate">Departure date *</label><input id="tDate" type="date" required></div>
+        <div class="field"><label for="tVehicle">Vehicle registration</label><input id="tVehicle" placeholder="Registration"></div>
+        <div class="field"><label for="tFrom">Origin *</label><input id="tFrom" required placeholder="Town / suburb, state"></div>
+        <div class="field"><label for="tTo">Destination *</label><input id="tTo" required placeholder="Town / suburb, state"></div>
+        <div class="field"><label for="tDistance">Distance (km)</label><input id="tDistance" type="number" min="0" step=".1" placeholder="Optional"></div>
+        <div class="field"><label for="tLoad">Load / job reference</label><input id="tLoad" placeholder="Optional"></div>
+        <div class="field full"><label for="tNotes">Notes</label><textarea id="tNotes" rows="2" placeholder="Route, delivery or other trip details"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="button primary" type="submit">Save trip</button></div>
+    </form>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="card-heading"><div><h3>Saved trips</h3><p id="tripCount">0 trips</p></div><button class="button secondary" id="exportTrips">↓ Export trips CSV</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Origin</th><th>Destination</th><th>Distance</th><th>Load / notes</th><th>Action</th></tr></thead><tbody id="tripTable"></tbody></table></div>
+  </div>
+</section>
+
+<section class="page" id="settings">
+  <div class="welcome"><div><h1>My configuration</h1><p class="subtitle">Set up your profile, vehicle and applicable hours option.</p></div></div>
+  <div class="card">
+    <div class="card-heading"><div><h3>Driver & vehicle profile</h3><p>Stored locally on this device.</p></div></div>
+    <form id="settingsForm">
+      <div class="form-grid">
+        <div class="field"><label for="driverName">Driver name</label><input id="driverName" placeholder="Your name"></div>
+        <div class="field"><label for="driverBase">Driver's base location</label><input id="driverBase" placeholder="e.g. Brisbane, QLD"></div>
+        <div class="field"><label for="vehicleType">Vehicle configuration</label>
+          <select id="vehicleType">
+            <option>Prime mover + semi-trailer</option>
+            <option>Rigid truck</option>
+            <option>Rigid truck + trailer</option>
+            <option>B-double</option>
+            <option>A-double / road train</option>
+            <option>Type 1 road train</option>
+            <option>Type 2 road train</option>
+            <option>Triple road train</option>
+            <option>Quad combination</option>
+            <option>Other multi-combination</option>
+            <option>Bus / coach</option>
+            <option>Other heavy vehicle</option>
+          </select>
+        </div>
+        <div class="field"><label for="registration">Vehicle registration</label><input id="registration" placeholder="Registration number"></div>
+        <div class="field"><label for="hoursOption">Hours option</label>
+          <select id="hoursOption">
+            <option value="standard">Standard Hours — Solo</option>
+            <option value="standardTwoUp">Standard Hours — Two-up</option>
+            <option value="bus">Standard Hours — Bus / Coach</option>
+            <option value="bfm">BFM — applicable approved option</option>
+            <option value="afm">AFM — certificate-specific</option>
+            <option value="ach">ACH — certificate-specific</option>
+          </select>
+        </div>
+        <div class="field"><label for="referenceHours">Dashboard reference (hours/day)</label><input id="referenceHours" type="number" min="1" max="24" step=".25" value="12"></div>
+        <div class="field full"><label for="configNotes">Accreditation / operating notes</label><textarea id="configNotes" rows="3" placeholder="Optional reference only. Do not enter confidential information."></textarea></div>
+      </div>
+      <div class="notice warn">Selecting an hours option does not activate its legal calculations. AFM and ACH conditions must be verified against the applicable accreditation and current law. Two-up and bus/coach variations also require specific rules.</div>
+      <div class="form-actions"><button class="button primary" type="submit">Save configuration</button></div>
+    </form>
+  </div>
+</section>
+
+<section class="page" id="help">
+  <div class="welcome"><div><h1>Help & regulatory information</h1><p class="subtitle">Official resources for Australian heavy-vehicle drivers.</p></div></div>
+  <div class="card">
+    <div class="card-heading"><div><h3>NHVR official guidance</h3><p>Consult the current version applicable to your operation.</p></div></div>
+    <div class="activity"><div class="activity-icon">📘</div><div class="activity-body"><strong>Work and rest hours</strong><small>Hours options and relevant work/rest requirements.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/work-and-rest-hours" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
+    <div class="activity"><div class="activity-icon">🧮</div><div class="activity-body"><strong>Counting time</strong><small>Relevant counting periods and rest-time calculations.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/counting-time" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
+    <div class="activity"><div class="activity-icon">📝</div><div class="activity-body"><strong>Record-keeping requirements</strong><small>Work diary and record-keeping obligations.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/record-keeping-requirements" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
+    <div class="activity"><div class="activity-icon">📱</div><div class="activity-body"><strong>Electronic Work Diaries</strong><small>Requirements for approved EWD systems.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/electronic-work-diary-ewd" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
+    <div class="activity"><div class="activity-icon">🚦</div><div class="activity-body"><strong>Alternative Compliance Accreditation</strong><small>Check current accreditation information and applicable conditions.</small><a href="https://www.nhvr.gov.au/" target="_blank" rel="noopener">Open NHVR website ↗</a></div></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="card-heading"><div><h3>How the calculator works</h3><p>Understand what these figures do and do not mean.</p></div></div>
+    <p>Daily work and rest totals are derived from saved activity intervals. Seven-day and fourteen-day summaries use elapsed time immediately before the current moment. These are descriptive summaries, not a complete implementation of statutory counting rules.</p>
+    <p>The app does not yet automatically determine local-area versus interstate diary obligations, establish legally qualifying rest breaks, apply every hours-option variation, validate accreditation conditions, or verify permits and vehicle access.</p>
+    <p>Vehicle configurations are descriptive labels. Selecting a B-double, road train, triple or quad combination does not establish that it is permitted on a particular road.</p>
+  </div>
+</section>
+
+<div class="footer-note">
+  <strong>Important:</strong> Logbook Master Personal Edition is an independent prototype, not an NHVR product and not an approved Electronic Work Diary. Calculations are preliminary summaries only. Do not rely on this prototype as your sole record where legislation requires a work diary or other record. Verify your obligations using current official guidance and your applicable accreditation conditions. Never drive while fatigued or unfit to drive.
+  <br>Data is stored in this browser only. Clearing browser data or changing devices can make records unavailable. Export regular backups.
+</div>
+</div>
+</main>
+</div>
+
+<script>
+"use strict";
+
+/*
+ * LOGBOOK MASTER — PERSONAL EDITION
+ * Single-file, local-first prototype.
+ * Arithmetic summaries are NOT statutory compliance determinations.
+ */
+
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = "logbook-master-au-v1";
+
+const DEFAULT_SETTINGS = {
+  driverName:"",
+  driverBase:"",
+  vehicleType:"Prime mover + semi-trailer",
+  registration:"",
+  hoursOption:"standard",
+  referenceHours:12,
+  configNotes:""
+};
+
+function emptyState(){
+  return {settings:{...DEFAULT_SETTINGS},activities:[],trips:[]};
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return emptyState();
+    const parsed=JSON.parse(raw);
+    return {
+      settings:{...DEFAULT_SETTINGS,...(parsed.settings||{})},
+      activities:Array.isArray(parsed.activities)?parsed.activities:[],
+      trips:Array.isArray(parsed.trips)?parsed.trips:[]
+    };
+  }catch(error){
+    console.error("Unable to load saved data",error);
+    return emptyState();
+  }
+}
+
+let state=loadState();
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    return true;
+  }catch(error){
+    alert("Your browser could not save the data. Export your records and check available storage.");
+    return false;
+  }
+}
+
+function localDate(date=new Date()){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+
+function localTimestamp(date,time){
+  return new Date(`${date}T${time}:00`).getTime();
+}
+
+function escapeHTML(value){
+  return String(value??"").replace(/[&<>"']/g,ch=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+
+function formatDateTime(timestamp){
+  return new Date(timestamp).toLocaleString("en-AU",{
+    day:"2-digit",month:"short",year:"numeric",
+    hour:"2-digit",minute:"2-digit"
+  });
+}
+
+function formatDate(date){
+  if(!date)return "—";
+  const d=new Date(`${date}T12:00:00`);
+  return d.toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+}
+
+function durationMinutes(entry){
+  return Math.max(0,(entry.end-entry.start)/60000);
+}
+
+function durationText(minutes){
+  const total=Math.max(0,Math.round(minutes));
+  return `${Math.floor(total/60)}h ${String(total%60).padStart(2,"0")}m`;
+}
+
+function optionLabel(){
+  const labels={
+    standard:"Standard Hours — Solo",
+    standardTwoUp:"Standard Hours — Two-up",
+    bus:"Standard Hours — Bus / Coach",
+    bfm:"BFM — Applicable approved option",
+    afm:"AFM — Certificate-specific",
+    ach:"ACH — Certificate-specific"
+  };
+  return labels[state.settings.hoursOption]||labels.standard;
+}
+
+/*
+ * Clip intervals against the requested range. This avoids counting
+ * portions of an activity that fall outside the summary period.
+ */
+function totalTypeBetween(type,rangeStart,rangeEnd){
+  return state.activities.reduce((total,item)=>{
+    if(item.type!==type)return total;
+    const overlap=Math.max(
+      0,Math.min(item.end,rangeEnd)-Math.max(item.start,rangeStart)
+    );
+    return total+overlap/60000;
+  },0);
+}
+
+function dailyTotal(type,date){
+  const start=new Date(`${date}T00:00:00`).getTime();
+  const end=new Date(
+    new Date(`${date}T00:00:00`).getFullYear(),
+    new Date(`${date}T00:00:00`).getMonth(),
+    new Date(`${date}T00:00:00`).getDate()+1
+  ).getTime();
+  return totalTypeBetween(type,start,end);
+}
+
+function rollingTotal(type,days){
+  const now=Date.now();
+  return totalTypeBetween(type,now-days*86400000,now);
+}
+
+function setProgress(id,value,maximum){
+  const pct=maximum>0?Math.max(0,Math.min(100,value/maximum*100)):0;
+  $(id).style.width=pct+"%";
+}
+
+function renderDashboard(){
+  const today=localDate();
+  const todayWork=dailyTotal("work",today);
+  const todayRest=dailyTotal("rest",today);
+  const week=rollingTotal("work",7);
+  const fortnight=rollingTotal("work",14);
+  const reference=(Number(state.settings.referenceHours)||12)*60;
+
+  $("todayWork").textContent=durationText(todayWork);
+  $("todayRest").textContent=durationText(todayRest);
+  $("weekWork").textContent=durationText(week);
+  $("fortnightWork").textContent=durationText(fortnight);
+
+  $("todayProgressText").textContent=durationText(todayWork);
+  $("weekProgressText").textContent=durationText(week);
+  $("fortnightProgressText").textContent=durationText(fortnight);
+
+  setProgress("todayBar",todayWork,reference);
+  setProgress("weekBar",week,72*60);
+  setProgress("fortnightBar",fortnight,144*60);
+
+  $("greeting").textContent=state.settings.driverName
+    ?`Welcome back, ${state.settings.driverName}`
+    :"Welcome to Logbook Master";
+
+  $("avatar").textContent=state.settings.driverName
+    ?state.settings.driverName.trim().split(/\s+/).slice(0,2).map(word=>word[0]).join("").toUpperCase()
+    :"LM";
+
+  $("summaryName").textContent=state.settings.driverName||"Driver not configured";
+  $("summaryVehicle").textContent=state.settings.vehicleType;
+  $("summaryReg").textContent=state.settings.registration||"Registration not entered";
+  $("summaryOption").textContent=optionLabel();
+  $("summaryBase").textContent=state.settings.driverBase||"Base not entered";
+
+  const recent=[...state.activities].sort((a,b)=>b.start-a.start).slice(0,5);
+  $("recentList").innerHTML=recent.length?recent.map(item=>`
+    <div class="activity">
+      <div class="activity-icon">${item.type==="work"?"🚛":"☾"}</div>
+      <div class="activity-body">
+        <strong>${escapeHTML(item.kind)}</strong>
+        <small>${escapeHTML(formatDateTime(item.start))} · ${escapeHTML(item.from||"Location not entered")}</small>
+      </div>
+      <div class="duration">${durationText(durationMinutes(item))}</div>
+    </div>
+  `).join(""):'<div class="empty">No activity yet. Record your first work or rest entry to get started.</div>';
+}
+
+function renderHistory(){
+  const query=$("historySearch").value.trim().toLowerCase();
+  const type=$("historyType").value;
+  const all=[...state.activities].sort((a,b)=>b.start-a.start);
+  const filtered=all.filter(item=>{
+    if(type!=="all"&&item.type!==type)return false;
+    const haystack=[item.kind,item.from,item.to,item.notes,item.type].join(" ").toLowerCase();
+    return !query||haystack.includes(query);
+  });
+
+  $("historyCount").textContent=`${filtered.length} shown · ${all.length} total`;
+
+  $("historyTable").innerHTML=filtered.length?filtered.map(item=>`
+    <tr>
+      <td>${escapeHTML(formatDateTime(item.start))}</td>
+      <td>${escapeHTML(formatDateTime(item.end))}</td>
+      <td>${item.type==="work"?"Work":"Rest"}<br><span class="small-text">${escapeHTML(item.kind)}</span></td>
+      <td>${durationText(durationMinutes(item))}</td>
+      <td>${escapeHTML([item.from,item.to].filter(Boolean).join(" → ")||"—")}</td>
+      <td>${escapeHTML(item.notes||"—")}</td>
+      <td><button class="button danger small-button" data-delete-activity="${escapeHTML(item.id)}">Delete</button></td>
+    </tr>
+  `).join(""):'<tr><td colspan="7" class="empty">No matching records.</td></tr>';
+}
+
+function renderTrips(){
+  const trips=[...state.trips].sort((a,b)=>b.date.localeCompare(a.date));
+  $("tripCount").textContent=`${trips.length} ${trips.length===1?"trip":"trips"}`;
+  $("tripTable").innerHTML=trips.length?trips.map(trip=>`
+    <tr>
+      <td>${escapeHTML(formatDate(trip.date))}</td>
+      <td>${escapeHTML(trip.vehicle||"—")}</td>
+      <td>${escapeHTML(trip.from)}</td>
+      <td>${escapeHTML(trip.to)}</td>
+      <td>${trip.distance!==""&&trip.distance!=null?escapeHTML(trip.distance)+" km":"—"}</td>
+      <td>${escapeHTML([trip.load,trip.notes].filter(Boolean).join(" · ")||"—")}</td>
+      <td><button class="button danger small-button" data-delete-trip="${escapeHTML(trip.id)}">Delete</button></td>
+    </tr>
+  `).join(""):'<tr><td colspan="7" class="empty">No trip records yet.</td></tr>';
+}
+
+function showPage(name){
+  document.querySelectorAll(".page").forEach(page=>page.classList.remove("active"));
+  $(name).classList.add("active");
+
+  document.querySelectorAll("[data-page]").forEach(button=>{
+    button.classList.toggle("active",button.dataset.page===name);
+  });
+
+  const titles={
+    dashboard:"Driver dashboard",
+    activity:"Record activity",
+    history:"Logbook history",
+    trips:"Trip records",
+    settings:"My configuration",
+    help:"Help & rules"
+  };
+  $("pageTitle").textContent=titles[name]||"Logbook Master";
+
+  if(name==="dashboard")renderDashboard();
+  if(name==="history")renderHistory();
+  if(name==="trips")renderTrips();
+}
+
+document.querySelectorAll("[data-page]").forEach(button=>{
+  button.addEventListener("click",()=>showPage(button.dataset.page));
+});
+document.querySelectorAll("[data-goto]").forEach(button=>{
+  button.addEventListener("click",()=>showPage(button.dataset.goto));
+});
+
+function loadSettings(){
+  $("driverName").value=state.settings.driverName;
+  $("driverBase").value=state.settings.driverBase;
+  $("vehicleType").value=state.settings.vehicleType;
+  $("registration").value=state.settings.registration;
+  $("hoursOption").value=state.settings.hoursOption;
+  $("referenceHours").value=state.settings.referenceHours;
+  $("configNotes").value=state.settings.configNotes;
+}
+
+$("settingsForm").addEventListener("submit",event=>{
+  event.preventDefault();
+
+  state.settings={
+    driverName:$("driverName").value.trim(),
+    driverBase:$("driverBase").value.trim(),
+    vehicleType:$("vehicleType").value,
+    registration:$("registration").value.trim(),
+    hoursOption:$("hoursOption").value,
+    referenceHours:Math.max(1,Math.min(24,Number($("referenceHours").value)||12)),
+    configNotes:$("configNotes").value.trim()
+  };
+
+  if(saveState()){
+    renderDashboard();
+    alert("Your configuration has been saved on this device.");
+    showPage("dashboard");
+  }
+});
+
+$("activityForm").addEventListener("submit",event=>{
+  event.preventDefault();
+
+  const start=localTimestamp($("aStartDate").value,$("aStartTime").value);
+  const end=localTimestamp($("aEndDate").value,$("aEndTime").value);
+  const type=$("aType").value;
+
+  if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){
+    alert("Please enter valid dates and times. The end must be after the start.");
+    return;
+  }
+
+  // Require review rather than silently double-counting overlapping entries.
+  const overlapping=state.activities.filter(item=>
+    Math.max(item.start,start)<Math.min(item.end,end)
+  );
+
+  if(overlapping.length){
+    const sameType=overlapping.some(item=>item.type===type);
+    const message=sameType
+      ?"This time overlaps an existing entry of the same type. Review the existing records before saving."
+      :"This time overlaps another work/rest entry. Check the records carefully. Save the overlapping entry anyway?";
+    if(sameType){
+      alert(message);
+      return;
+    }
+    if(!confirm(message))return;
+  }
+
+  const entry={
+    id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
+    type,start,end,
+    kind:$("aKind").value,
+    from:$("aFrom").value.trim(),
+    to:$("aTo").value.trim(),
+    notes:$("aNotes").value.trim()
+  };
+
+  state.activities.push(entry);
+  state.activities.sort((a,b)=>a.start-b.start);
+
+  if(saveState()){
+    $("activityForm").reset();
+    $("aStartDate").value=localDate();
+    $("aEndDate").value=localDate();
+    $("aStartTime").value="08:00";
+    $("aEndTime").value="09:00";
+    renderDashboard();
+    alert("Activity saved.");
+    showPage("dashboard");
+  }
+});
+
+$("historySearch").addEventListener("input",renderHistory);
+$("historyType").addEventListener("change",renderHistory);
+
+$("historyTable").addEventListener("click",event=>{
+  const button=event.target.closest("[data-delete-activity]");
+  if(!button)return;
+  if(!confirm("Delete this activity record?"))return;
+
+  state.activities=state.activities.filter(item=>item.id!==button.dataset.deleteActivity);
+  if(saveState()){
+    renderHistory();
+    renderDashboard();
+  }
+});
+
+$("clearHistory").addEventListener("click",()=>{
+  if(!state.activities.length){alert("There are no activity records to clear.");return;}
+  if(!confirm("Permanently delete every activity record? Export a backup first if needed."))return;
+  state.activities=[];
+  if(saveState()){renderHistory();renderDashboard();}
+});
+
+$("tripForm").addEventListener("submit",event=>{
+  event.preventDefault();
+
+  const trip={
+    id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
+    date:$("tDate").value,
+    vehicle:$("tVehicle").value.trim()||state.settings.registration,
+    from:$("tFrom").value.trim(),
+    to:$("tTo").value.trim(),
+    distance:$("tDistance").value,
+    load:$("tLoad").value.trim(),
+    notes:$("tNotes").value.trim()
+  };
+
+  if(!trip.date||!trip.from||!trip.to){
+    alert("Enter the date, origin and destination.");
+    return;
+  }
+
+  state.trips.push(trip);
+  if(saveState()){
+    $("tripForm").reset();
+    $("tDate").value=localDate();
+    renderTrips();
+    alert("Trip saved.");
+  }
+});
+
+$("tripTable").addEventListener("click",event=>{
+  const button=event.target.closest("[data-delete-trip]");
+  if(!button)return;
+  if(!confirm("Delete this trip?"))return;
+  state.trips=state.trips.filter(trip=>trip.id!==button.dataset.deleteTrip);
+  if(saveState())renderTrips();
+});
+
+function downloadCSV(filename,headers,rows){
+  const cell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+  const csv=[headers,...rows].map(row=>row.map(cell).join(",")).join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;
+  link.download=filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+$("exportCsv").addEventListener("click",()=>{
+  const rows=[...state.activities].sort((a,b)=>a.start-b.start).map(item=>[
+    new Date(item.start).toISOString(),
+    new Date(item.end).toISOString(),
+    item.type,item.kind,Math.round(durationMinutes(item)),
+    item.from,item.to,item.notes
+  ]);
+
+  downloadCSV("logbook-master-activities-"+localDate()+".csv",[
+    "Start ISO","End ISO","Activity type","Activity detail",
+    "Duration minutes","From","To","Notes"
+  ],rows);
+});
+
+$("exportTrips").addEventListener("click",()=>{
+  const rows=[...state.trips].sort((a,b)=>a.date.localeCompare(b.date)).map(trip=>[
+    trip.date,trip.vehicle,trip.from,trip.to,trip.distance,trip.load,trip.notes
+  ]);
+
+  downloadCSV("logbook-master-trips-"+localDate()+".csv",[
+    "Date","Vehicle","Origin","Destination","Distance km","Load","Notes"
+  ],rows);
+});
+
+// Initialise forms using the browser's local date.
+const today=localDate();
+$("aStartDate").value=today;
+$("aEndDate").value=today;
+$("aStartTime").value="08:00";
+$("aEndTime").value="09:00";
+$("tDate").value=today;
+
+$("dateLabel").textContent=new Date().toLocaleDateString("en-AU",{
+  weekday:"long",day:"numeric",month:"long",year:"numeric"
+});
+
+loadSettings();
+renderDashboard();
+renderHistory();
+renderTrips();
+</script>
+</body>
+</html>
