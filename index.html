@@ -230,7 +230,7 @@ td{max-width:270px;overflow-wrap:anywhere}
 <main class="main">
 <header class="topbar">
   <div><h2 id="pageTitle">Driver dashboard</h2><p id="dateLabel"></p></div>
-  <div class="top-actions"><span class="top-pill">🇦🇺 Australia</span><div class="avatar" id="avatar">LM</div></div>
+  <div class="top-actions"><span class="top-pill">🇦🇺 Australia</span><div class="avatar" id="avatar">LM</div><button id="driveToggle" class="button primary small-button" aria-pressed="false">Start driving</button><div id="driveTimer" class="small-text" style="margin-left:6px;align-self:center;"> </div></div>
 </header>
 
 <div class="content">
@@ -317,7 +317,7 @@ td{max-width:270px;overflow-wrap:anywhere}
         <div class="field"><label for="tDate">Departure date *</label><input id="tDate" type="date" required></div>
         <div class="field"><label for="tVehicle">Vehicle registration</label><input id="tVehicle" placeholder="Registration"></div>
         <div class="field"><label for="tFrom">Origin *</label><input id="tFrom" required placeholder="Town / suburb, state"></div>
-        <div class="field"><label for="tTo">Destination *</label><input id="tTo" required placeholder="Town / suburb, state"></div>
+        <div class="field"><label for="tTo">Destination *</label><input id="tTo" required placeholder="Town / suburb, state"></input></div>
         <div class="field"><label for="tDistance">Distance (km)</label><input id="tDistance" type="number" min="0" step=".1" placeholder="Optional"></div>
         <div class="field"><label for="tLoad">Load / job reference</label><input id="tLoad" placeholder="Optional"></div>
         <div class="field full"><label for="tNotes">Notes</label><textarea id="tNotes" rows="2" placeholder="Route, delivery or other trip details"></textarea></div>
@@ -414,6 +414,7 @@ td{max-width:270px;overflow-wrap:anywhere}
 /*
  * LOGBOOK MASTER — PROFESSIONAL UI REFRESH
  * Adds non-blocking toasts, confirm modal and basic NHVR-style limit checks + test runner
+ * Adds Start/Stop driving quick-tap button that records driving activity
  */
 
 const $ = id => document.getElementById(id);
@@ -450,6 +451,7 @@ function loadState(){
 }
 
 let state=loadState();
+let activeDriveInterval = null; // interval id for updating active drive end time
 
 function saveState(){
   try{
@@ -659,6 +661,20 @@ function renderDashboard(){
   $("recentList").innerHTML=recent.length?recent.map(item=>`
     <div class=\"activity\">\n      <div class=\"activity-icon\">${item.type==="work"?"🚛":"☾"}</div>\n      <div class=\"activity-body\">\n        <strong>${escapeHTML(item.kind)}</strong>\n        <small>${escapeHTML(formatDateTime(item.start))} · ${escapeHTML(item.from||"Location not entered")}</small>\n      </div>\n      <div class=\"duration\">${durationText(durationMinutes(item))}</div>\n    </div>
   `).join(""):'<div class="empty">No activity yet. Record your first work or rest entry to get started.</div>';
+
+  // update drive button state
+  const active = getActiveDrive();
+  const btn = $("driveToggle");
+  const timer = $("driveTimer");
+  if(active){
+    btn.textContent = 'Stop driving';
+    btn.setAttribute('aria-pressed','true');
+    timer.textContent = 'Driving — ' + durationText(durationMinutes(active));
+  } else {
+    btn.textContent = 'Start driving';
+    btn.setAttribute('aria-pressed','false');
+    timer.textContent = '';
+  }
 }
 
 function renderHistory(){
@@ -761,6 +777,82 @@ $("settingsForm").addEventListener("submit",event=>{
     showPage("dashboard");
   }
 });
+
+// Start/Stop driving quick-tap implementation
+function getActiveDrive(){
+  return state.activities.find(a=>a.active===true);
+}
+
+function startDrive(){
+  // warn if overlapping with existing work entries
+  const start = Date.now();
+  const end = start; // will be updated
+  const overlapping = state.activities.filter(item => Math.max(item.start,start) < Math.min(item.end,end+1000));
+  if(overlapping.length){
+    showToast('Starting a drive overlaps existing entries — records may need review.','warn',4000);
+  }
+
+  const entry = {
+    id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
+    type:'work',
+    start:start,
+    end:end,
+    kind:'Driving',
+    from:'',
+    to:'',
+    notes:'',
+    active:true
+  };
+  state.activities.push(entry);
+  // ensure sorted
+  state.activities.sort((a,b)=>a.start-b.start);
+  if(saveState()){
+    // start interval to update end timestamp every 1s for display
+    if(activeDriveInterval) clearInterval(activeDriveInterval);
+    activeDriveInterval = setInterval(()=>{
+      const active = getActiveDrive();
+      if(active){ active.end = Date.now(); saveState(); renderDashboard(); }
+    },1000);
+    showToast('Drive started','success');
+    renderDashboard();
+  }
+}
+
+function stopDrive(){
+  const active = getActiveDrive();
+  if(!active) return;
+  active.end = Date.now();
+  active.active = false;
+  // cleanup interval
+  if(activeDriveInterval) { clearInterval(activeDriveInterval); activeDriveInterval = null; }
+  if(saveState()){
+    showToast('Drive stopped','success');
+    renderDashboard();
+  }
+}
+
+$("driveToggle").addEventListener('click',()=>{
+  const active = getActiveDrive();
+  if(active){
+    // stop on tap
+    stopDrive();
+  } else {
+    // start on tap
+    startDrive();
+  }
+});
+
+// resume any active drive when app loads
+function resumeActiveDrive(){
+  const active = getActiveDrive();
+  if(active){
+    if(activeDriveInterval) clearInterval(activeDriveInterval);
+    activeDriveInterval = setInterval(()=>{
+      const a = getActiveDrive();
+      if(a){ a.end = Date.now(); saveState(); renderDashboard(); }
+    },1000);
+  }
+}
 
 // Activity form: improved validation and NHVR-style checks
 $("activityForm").addEventListener("submit",async event=>{
@@ -943,6 +1035,7 @@ $("dateLabel").textContent=new Date().toLocaleDateString("en-AU",{
 });
 
 loadSettings();
+resumeActiveDrive();
 renderDashboard();
 renderHistory();
 renderTrips();
