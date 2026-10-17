@@ -163,6 +163,15 @@ td{max-width:270px;overflow-wrap:anywhere}
 .confirm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
 .confirm-title{font-weight:800;margin:0 0 8px}
 .confirm-body{color:var(--muted);font-size:13px}
+/* Drive panel */
+#drivePanel{position:fixed;right:18px;top:96px;width:340px;background:#fff;border:1px solid var(--border);box-shadow:var(--shadow);border-radius:10px;padding:14px;z-index:9999}
+#drivePanel h4{margin:0 0 8px}
+.drive-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #eef3fb}
+.drive-row:last-child{border-bottom:0}
+.drive-remaining{font-weight:800}
+@media(max-width:650px){
+ #drivePanel{left:12px;right:12px;width:auto;top:76px}
+}
 @media(max-width:1100px){
  .sidebar{width:215px}.main{margin-left:215px}
  .content{padding:20px}.topbar{padding:0 20px}
@@ -398,6 +407,18 @@ td{max-width:270px;overflow-wrap:anywhere}
 </main>
 </div>
 
+<!-- Drive panel (hidden until needed) -->
+<div id="drivePanel" class="hidden" aria-hidden="true">
+  <h4>Live driving summary</h4>
+  <div class="drive-row"><div>Driving today</div><div id="panelToday">0h 00m</div></div>
+  <div class="drive-row"><div>Remaining today</div><div id="panelRemainingToday" class="drive-remaining">0h 00m</div></div>
+  <div class="drive-row"><div>7-day total</div><div id="panel7">0h 00m</div></div>
+  <div class="drive-row"><div>Remaining 7-day</div><div id="panelRemaining7" class="drive-remaining">0h 00m</div></div>
+  <div class="drive-row"><div>14-day total</div><div id="panel14">0h 00m</div></div>
+  <div class="drive-row"><div>Remaining 14-day</div><div id="panelRemaining14" class="drive-remaining">0h 00m</div></div>
+  <div style="display:flex;gap:8px;margin-top:10px"><button id="panelClose" class="button secondary">Close</button><button id="panelPdf" class="button primary">Finish &amp; generate PDF</button></div>
+</div>
+
 <!-- Toast and confirm modal markup -->
 <div id="toastContainer" aria-live="polite" class="hidden"></div>
 <div id="confirmModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
@@ -413,8 +434,7 @@ td{max-width:270px;overflow-wrap:anywhere}
 
 /*
  * LOGBOOK MASTER — PROFESSIONAL UI REFRESH
- * Adds non-blocking toasts, confirm modal and basic NHVR-style limit checks + test runner
- * Adds Start/Stop driving quick-tap button that records driving activity
+ * Adds drive panel summary and PDF generation for NHVR-style logbook page
  */
 
 const $ = id => document.getElementById(id);
@@ -662,19 +682,8 @@ function renderDashboard(){
     <div class=\"activity\">\n      <div class=\"activity-icon\">${item.type==="work"?"🚛":"☾"}</div>\n      <div class=\"activity-body\">\n        <strong>${escapeHTML(item.kind)}</strong>\n        <small>${escapeHTML(formatDateTime(item.start))} · ${escapeHTML(item.from||"Location not entered")}</small>\n      </div>\n      <div class=\"duration\">${durationText(durationMinutes(item))}</div>\n    </div>
   `).join(""):'<div class="empty">No activity yet. Record your first work or rest entry to get started.</div>';
 
-  // update drive button state
-  const active = getActiveDrive();
-  const btn = $("driveToggle");
-  const timer = $("driveTimer");
-  if(active){
-    btn.textContent = 'Stop driving';
-    btn.setAttribute('aria-pressed','true');
-    timer.textContent = 'Driving — ' + durationText(durationMinutes(active));
-  } else {
-    btn.textContent = 'Start driving';
-    btn.setAttribute('aria-pressed','false');
-    timer.textContent = '';
-  }
+  // update drive button state and panel values
+  updateDrivePanelValues();
 }
 
 function renderHistory(){
@@ -778,146 +787,184 @@ $("settingsForm").addEventListener("submit",event=>{
   }
 });
 
-// Start/Stop driving quick-tap implementation
+// Drive panel helpers
 function getActiveDrive(){
   return state.activities.find(a=>a.active===true);
 }
 
-function startDrive(){
-  // warn if overlapping with existing work entries
-  const start = Date.now();
-  const end = start; // will be updated
-  const overlapping = state.activities.filter(item => Math.max(item.start,start) < Math.min(item.end,end+1000));
-  if(overlapping.length){
-    showToast('Starting a drive overlaps existing entries — records may need review.','warn',4000);
-  }
+function computePanelValues(){
+  const today = localDate();
+  const todayMinutes = dailyTotal('work', today);
+  const reference = (Number(state.settings.referenceHours)||12)*60;
+  const remainingToday = Math.max(0, reference - todayMinutes);
+  const week = rollingTotal('work',7);
+  const remaining7 = Math.max(0, 72*60 - week);
+  const fortnight = rollingTotal('work',14);
+  const remaining14 = Math.max(0, 144*60 - fortnight);
+  return {todayMinutes,remainingToday,week,remaining7,fortnight,remaining14,reference};
+}
 
+function updateDrivePanelValues(){
+  const panel = $("drivePanel");
+  const active = getActiveDrive();
+  if(!panel) return;
+  const vals = computePanelValues();
+  $("panelToday").textContent = durationText(vals.todayMinutes);
+  $("panelRemainingToday").textContent = durationText(vals.remainingToday);
+  $("panel7").textContent = durationText(vals.week);
+  $("panelRemaining7").textContent = durationText(vals.remaining7);
+  $("panel14").textContent = durationText(vals.fortnight);
+  $("panelRemaining14").textContent = durationText(vals.remaining14);
+
+  // if active drive exists, show panel by default
+  if(active){ showDrivePanel(); }
+}
+
+function showDrivePanel(){
+  const panel = $("drivePanel");
+  if(!panel) return;
+  panel.classList.remove('hidden');
+  panel.setAttribute('aria-hidden','false');
+  updateDrivePanelValues();
+}
+
+function hideDrivePanel(){
+  const panel = $("drivePanel");
+  if(!panel) return;
+  panel.classList.add('hidden');
+  panel.setAttribute('aria-hidden','true');
+}
+
+// Start/Stop driving quick-tap implementation
+function startDrive(){
+  const start = Date.now();
   const entry = {
     id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
     type:'work',
     start:start,
-    end:end,
+    end:start,
     kind:'Driving',
     from:'',
     to:'',
     notes:'',
     active:true
   };
+  // warn briefly if overlapping
+  const overlapping = state.activities.filter(item => Math.max(item.start,start) < Math.min(item.end,start+1000));
+  if(overlapping.length) showToast('Starting a drive overlaps existing entries — records may need review.','warn',4000);
+
   state.activities.push(entry);
-  // ensure sorted
   state.activities.sort((a,b)=>a.start-b.start);
   if(saveState()){
-    // start interval to update end timestamp every 1s for display
     if(activeDriveInterval) clearInterval(activeDriveInterval);
     activeDriveInterval = setInterval(()=>{
-      const active = getActiveDrive();
-      if(active){ active.end = Date.now(); saveState(); renderDashboard(); }
+      const a = getActiveDrive();
+      if(a){ a.end = Date.now(); saveState(); updateDrivePanelValues(); renderDashboard(); }
     },1000);
     showToast('Drive started','success');
+    showDrivePanel();
     renderDashboard();
   }
 }
 
-function stopDrive(){
+function stopDrive(showPanel=true){
   const active = getActiveDrive();
   if(!active) return;
   active.end = Date.now();
   active.active = false;
-  // cleanup interval
-  if(activeDriveInterval) { clearInterval(activeDriveInterval); activeDriveInterval = null; }
+  if(activeDriveInterval){ clearInterval(activeDriveInterval); activeDriveInterval = null; }
   if(saveState()){
     showToast('Drive stopped','success');
+    if(showPanel) showDrivePanel();
     renderDashboard();
   }
 }
 
-$("driveToggle").addEventListener('click',()=>{
+$("driveToggle").addEventListener('click',async ()=>{
   const active = getActiveDrive();
   if(active){
     // stop on tap
-    stopDrive();
+    // ask if user wants immediate PDF generation? We'll stop and show panel with option
+    stopDrive(true);
   } else {
-    // start on tap
     startDrive();
   }
 });
 
-// resume any active drive when app loads
-function resumeActiveDrive(){
-  const active = getActiveDrive();
-  if(active){
-    if(activeDriveInterval) clearInterval(activeDriveInterval);
-    activeDriveInterval = setInterval(()=>{
-      const a = getActiveDrive();
-      if(a){ a.end = Date.now(); saveState(); renderDashboard(); }
-    },1000);
-  }
+// Panel controls
+$("panelClose").addEventListener('click',()=>{ hideDrivePanel(); });
+
+// Generate a print-ready NHVR-style logbook page (HTML) for today's activities or for the completed drive
+function generateLogbookHtml(forEntry=null){
+  // Choose the date: if forEntry provided, use its start date; otherwise today
+  const date = forEntry ? new Date(forEntry.start) : new Date();
+  const dateStr = date.toLocaleDateString('en-AU', { day:'2-digit', month:'short', year:'numeric' });
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const dayEnd = dayStart + 86400000;
+  const activities = state.activities.filter(a => a.start < dayEnd && a.end > dayStart).sort((a,b)=>a.start-b.start);
+
+  // Build rows similar to a logbook: start time, end time, activity, duration, location
+  const rowsHtml = activities.map(a => {
+    const startT = new Date(a.start).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    const endT = new Date(a.end).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    const dur = durationText(durationMinutes(a));
+    const loc = escapeHTML([a.from,a.to].filter(Boolean).join(' → '));
+    return `<tr><td>${escapeHTML(startT)}</td><td>${escapeHTML(endT)}</td><td>${escapeHTML(a.kind||a.type)}</td><td>${escapeHTML(dur)}</td><td>${loc||'—'}</td></tr>`;
+  }).join('');
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Logbook ${escapeHTML(dateStr)}</title>
+  <style>body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111}h1{font-size:16px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #222;padding:6px;text-align:left}th{background:#f0f0f0}</style></head><body>
+  <h1>Logbook Master — Daily logbook</h1>
+  <p><strong>Date:</strong> ${escapeHTML(dateStr)}<br><strong>Driver:</strong> ${escapeHTML(state.settings.driverName||'—')} &nbsp; <strong>Vehicle:</strong> ${escapeHTML(state.settings.registration||state.settings.vehicleType||'—')}</p>
+  <table><thead><tr><th>Start</th><th>End</th><th>Activity</th><th>Duration</th><th>Location</th></tr></thead><tbody>
+  ${rowsHtml||'<tr><td colspan="5" style="text-align:center">No records for this date.</td></tr>'}
+  </tbody></table>
+  <p style="margin-top:12px;font-size:11px;color:#555"><strong>Disclaimer:</strong> This printable logbook is a convenience export. It is not an NHVR-approved electronic work diary and must not be used as a legal substitute. Verify with current NHVR requirements.</p>
+  </body></html>`;
+  return html;
 }
 
-// Activity form: improved validation and NHVR-style checks
+function openPdfWindowWithHtml(html){
+  const w = window.open('', '_blank');
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  // Give the browser a moment to render, then trigger print
+  setTimeout(()=>{ w.focus(); w.print(); }, 500);
+}
+
+$("panelPdf").addEventListener('click',()=>{
+  // Use the active drive if it was just stopped; otherwise default to today
+  const active = getActiveDrive();
+  // If active exists (unlikely because panel shows after stop), use most recent non-active last entry for driving
+  // Find last driving entry that is not active
+  let target = null;
+  if(active) target = active; else {
+    // pick the most recent activity which ended most recently and was 'Driving'
+    const drives = [...state.activities].filter(a=>a.kind==='Driving' && !a.active).sort((a,b)=>b.end-a.end);
+    if(drives.length) target = drives[0];
+  }
+  const html = generateLogbookHtml(target);
+  openPdfWindowWithHtml(html);
+});
+
+$("settingsForm").addEventListener("submit",event=>event.preventDefault());
+
+// Activity & history handlers (existing behaviours) - shortened for clarity
 $("activityForm").addEventListener("submit",async event=>{
   event.preventDefault();
-
   const start=localTimestamp($("aStartDate").value,$("aStartTime").value);
   const end=localTimestamp($("aEndDate").value,$("aEndTime").value);
   const type=$("aType").value;
-
-  if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){
-    $("activityValidation").classList.remove('hidden');
-    $("activityValidation").textContent = "Please enter valid dates and times. The end must be after the start.";
-    return;
-  } else {
-    $("activityValidation").classList.add('hidden');
-    $("activityValidation").textContent = '';
-  }
-
-  // Require review rather than silently double-counting overlapping entries.
-  const overlapping=state.activities.filter(item=>
-    Math.max(item.start,start)<Math.min(item.end,end)
-  );
-
-  if(overlapping.length){
-    const sameType=overlapping.some(item=>item.type===type);
-    const message=sameType
-      ?"This time overlaps an existing entry of the same type. Review the existing records before saving."
-      :"This time overlaps another work/rest entry. Check the records carefully. Save the overlapping entry anyway?";
-    if(sameType){
-      showToast(message,'warn');
-      return;
-    }
-    const proceed = await showConfirm('Overlapping entry', message);
-    if(!proceed) return;
-  }
-
-  const entry={
-    id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
-    type,start,end,
-    kind:$("aKind").value,
-    from:$("aFrom").value.trim(),
-    to:$("aTo").value.trim(),
-    notes:$("aNotes").value.trim()
-  };
-
-  // run NHVR-like checks and warn if limit breaches occur
+  if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){ $("activityValidation").classList.remove('hidden'); $("activityValidation").textContent = "Please enter valid dates and times. The end must be after the start."; return; }
+  $("activityValidation").classList.add('hidden'); $("activityValidation").textContent = '';
+  const overlapping=state.activities.filter(item=> Math.max(item.start,start)<Math.min(item.end,end) );
+  if(overlapping.length){ const sameType=overlapping.some(item=>item.type===type); const message=sameType?"This time overlaps an existing entry of the same type. Review the existing records before saving.":"This time overlaps another work/rest entry. Check the records carefully. Save the overlapping entry anyway?"; if(sameType){ showToast(message,'warn'); return;} const proceed = await showConfirm('Overlapping entry', message); if(!proceed) return; }
+  const entry={ id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(), type,start,end, kind:$("aKind").value, from:$("aFrom").value.trim(), to:$("aTo").value.trim(), notes:$("aNotes").value.trim() };
   const warnings = checkHoursLimits(entry);
-  if(warnings.length){
-    const proceed = await showConfirm('Limit check warning', warnings.join(' \n ')+"\n\nDo you want to save this entry anyway?");
-    if(!proceed) return;
-  }
-
-  state.activities.push(entry);
-  state.activities.sort((a,b)=>a.start-b.start);
-
-  if(saveState()){
-    $("activityForm").reset();
-    $("aStartDate").value=localDate();
-    $("aEndDate").value=localDate();
-    $("aStartTime").value="08:00";
-    $("aEndTime").value="09:00";
-    renderDashboard();
-    showToast("Activity saved.");
-    showPage("dashboard");
-  }
+  if(warnings.length){ const proceed = await showConfirm('Limit check warning', warnings.join(' \n ')+"\n\nDo you want to save this entry anyway?"); if(!proceed) return; }
+  state.activities.push(entry); state.activities.sort((a,b)=>a.start-b.start);
+  if(saveState()){ $("activityForm").reset(); $("aStartDate").value=localDate(); $("aEndDate").value=localDate(); $("aStartTime").value="08:00"; $("aEndTime").value="09:00"; renderDashboard(); showToast("Activity saved."); showPage("dashboard"); }
 });
 
 $("historySearch").addEventListener("input",renderHistory);
@@ -925,102 +972,20 @@ $("historyType").addEventListener("change",renderHistory);
 
 $("historyTable").addEventListener("click",async event=>{
   const button=event.target.closest("[data-delete-activity]");
-  if(!button)return;
-  const confirm = await showConfirm('Delete activity','Delete this activity record? This action cannot be undone.');
-  if(!confirm) return;
-
-  state.activities=state.activities.filter(item=>item.id!==button.dataset.deleteActivity);
-  if(saveState()){
-    renderHistory();
-    renderDashboard();
-    showToast('Activity deleted','success');
-  }
+  if(!button)return; const confirm = await showConfirm('Delete activity','Delete this activity record? This action cannot be undone.'); if(!confirm) return; state.activities=state.activities.filter(item=>item.id!==button.dataset.deleteActivity); if(saveState()){ renderHistory(); renderDashboard(); showToast('Activity deleted','success'); }
 });
 
-$("clearHistory").addEventListener("click",async ()=>{
-  if(!state.activities.length){showToast("There are no activity records to clear.",'warn');return;}
-  const confirmed = await showConfirm('Clear history','Permanently delete every activity record? Export a backup first if needed.');
-  if(!confirmed) return;
-  state.activities=[];
-  if(saveState()){renderHistory();renderDashboard();showToast('All activity records deleted','success');}
-});
+$("clearHistory").addEventListener("click",async ()=>{ if(!state.activities.length){showToast("There are no activity records to clear.",'warn');return;} const confirmed = await showConfirm('Clear history','Permanently delete every activity record? Export a backup first if needed.'); if(!confirmed) return; state.activities=[]; if(saveState()){renderHistory();renderDashboard();showToast('All activity records deleted','success');} });
 
-$("tripForm").addEventListener("submit",event=>{
-  event.preventDefault();
+$("tripForm").addEventListener("submit",event=>{ event.preventDefault(); const trip={ id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(), date:$("tDate").value, vehicle:$("tVehicle").value.trim()||state.settings.registration, from:$("tFrom").value.trim(), to:$("tTo").value.trim(), distance:$("tDistance").value, load:$("tLoad").value.trim(), notes:$("tNotes").value.trim() }; if(!trip.date||!trip.from||!trip.to){ showToast("Enter the date, origin and destination.",'warn'); return;} state.trips.push(trip); if(saveState()){ $("tripForm").reset(); $("tDate").value=localDate(); renderTrips(); showToast("Trip saved."); } });
 
-  const trip={
-    id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
-    date:$("tDate").value,
-    vehicle:$("tVehicle").value.trim()||state.settings.registration,
-    from:$("tFrom").value.trim(),
-    to:$("tTo").value.trim(),
-    distance:$("tDistance").value,
-    load:$("tLoad").value.trim(),
-    notes:$("tNotes").value.trim()
-  };
+$("tripTable").addEventListener("click",async event=>{ const button=event.target.closest("[data-delete-trip]"); if(!button)return; const ok = await showConfirm('Delete trip','Delete this trip?'); if(!ok) return; state.trips=state.trips.filter(trip=>trip.id!==button.dataset.deleteTrip); if(saveState())renderTrips(); });
 
-  if(!trip.date||!trip.from||!trip.to){
-    showToast("Enter the date, origin and destination.",'warn');
-    return;
-  }
+function downloadCSV(filename,headers,rows){ const cell=value=>'"'+String(value??"").replace(/"/g,'""')+'"'; const csv=[headers,...rows].map(row=>row.map(cell).join(",")).join("\r\n"); const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const link=document.createElement("a"); link.href=url; link.download=filename; document.body.appendChild(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
 
-  state.trips.push(trip);
-  if(saveState()){
-    $("tripForm").reset();
-    $("tDate").value=localDate();
-    renderTrips();
-    showToast("Trip saved.");
-  }
-});
+$("exportCsv").addEventListener("click",()=>{ const rows=[...state.activities].sort((a,b)=>a.start-b.start).map(item=>[ new Date(item.start).toISOString(), new Date(item.end).toISOString(), item.type,item.kind,Math.round(durationMinutes(item)), item.from,item.to,item.notes ]); downloadCSV("logbook-master-activities-"+localDate()+".csv",[ "Start ISO","End ISO","Activity type","Activity detail", "Duration minutes","From","To","Notes" ],rows); showToast('Activities exported','success'); });
 
-$("tripTable").addEventListener("click",async event=>{
-  const button=event.target.closest("[data-delete-trip]");
-  if(!button)return;
-  const ok = await showConfirm('Delete trip','Delete this trip?');
-  if(!ok) return;
-  state.trips=state.trips.filter(trip=>trip.id!==button.dataset.deleteTrip);
-  if(saveState())renderTrips();
-});
-
-function downloadCSV(filename,headers,rows){
-  const cell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
-  const csv=[headers,...rows].map(row=>row.map(cell).join(",")).join("\r\n");
-  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement("a");
-  link.href=url;
-  link.download=filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-$("exportCsv").addEventListener("click",()=>{
-  const rows=[...state.activities].sort((a,b)=>a.start-b.start).map(item=>[
-    new Date(item.start).toISOString(),
-    new Date(item.end).toISOString(),
-    item.type,item.kind,Math.round(durationMinutes(item)),
-    item.from,item.to,item.notes
-  ]);
-
-  downloadCSV("logbook-master-activities-"+localDate()+".csv",[
-    "Start ISO","End ISO","Activity type","Activity detail",
-    "Duration minutes","From","To","Notes"
-  ],rows);
-  showToast('Activities exported','success');
-});
-
-$("exportTrips").addEventListener("click",()=>{
-  const rows=[...state.trips].sort((a,b)=>a.date.localeCompare(b.date)).map(trip=>[
-    trip.date,trip.vehicle,trip.from,trip.to,trip.distance,trip.load,trip.notes
-  ]);
-
-  downloadCSV("logbook-master-trips-"+localDate()+".csv",[
-    "Date","Vehicle","Origin","Destination","Distance km","Load","Notes"
-  ],rows);
-  showToast('Trips exported','success');
-});
+$("exportTrips").addEventListener("click",()=>{ const rows=[...state.trips].sort((a,b)=>a.date.localeCompare(b.date)).map(trip=>[ trip.date,trip.vehicle,trip.from,trip.to,trip.distance,trip.load,trip.notes ]); downloadCSV("logbook-master-trips-"+localDate()+".csv",[ "Date","Vehicle","Origin","Destination","Distance km","Load","Notes" ],rows); showToast('Trips exported','success'); });
 
 // Initialise forms using the browser's local date.
 const today=localDate();
@@ -1035,7 +1000,14 @@ $("dateLabel").textContent=new Date().toLocaleDateString("en-AU",{
 });
 
 loadSettings();
-resumeActiveDrive();
+
+// resume active drive and render
+if(getActiveDrive()){
+  // resume interval
+  if(activeDriveInterval) clearInterval(activeDriveInterval);
+  activeDriveInterval = setInterval(()=>{ const a = getActiveDrive(); if(a){ a.end = Date.now(); saveState(); updateDrivePanelValues(); renderDashboard(); } },1000);
+}
+
 renderDashboard();
 renderHistory();
 renderTrips();
@@ -1043,28 +1015,22 @@ renderTrips();
 /* Basic test runner: run when URL contains #run-tests */
 function runBasicTests(){
   const results=[];
-  // Test durationMinutes
   const e={start:Date.now(),end:Date.now()+90*60000};
   results.push({name:'durationMinutes',ok:Math.round(durationMinutes(e))===90});
-  // Test overlapMinutesBetweenInterval
   const s=Date.now();
-  const overlap=overlapMinutesBetweenInterval(s,s+3600000,s+1800000,s+5400000); // 30 minutes
+  const overlap=overlapMinutesBetweenInterval(s,s+3600000,s+1800000,s+5400000);
   results.push({name:'overlap30min',ok:Math.round(overlap)===30});
-  // Test totalTypeBetween basic
   const savedState = state.activities.slice();
   state.activities.push({id:'_t',type:'work',start:Date.now()-7200000,end:Date.now()-3600000});
   const tb = totalTypeBetween('work',Date.now()-10800000,Date.now());
   results.push({name:'totalTypeBetween',ok:tb>=60});
-  // restore
   state.activities = savedState;
-
   console.group('Basic tests');
   results.forEach(r=>console.log(r.name, r.ok? 'PASS':'FAIL'));
   console.groupEnd();
   const passed = results.filter(r=>r.ok).length;
   showToast(`Tests: ${passed}/${results.length} passed`,'success',5000);
 }
-
 if(location.hash==='\#run-tests') runBasicTests();
 
 </script>
