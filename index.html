@@ -6,12 +6,13 @@
 <meta name="theme-color" content="#101b2d">
 <meta name="description" content="Logbook Master — Australian heavy vehicle driver logbook and work/rest calculator.">
 <title>Logbook Master | Australian Heavy Vehicle Logbook</title>
+<link rel="icon" href="favicon.ico">
 
 <style>
 :root{
-  --navy:#101b2d;
+  --navy:#0e2233;
   --navy2:#1b2b43;
-  --blue:#3478f6;
+  --blue:#1f6feb;
   --blue-light:#edf4ff;
   --green:#119b72;
   --amber:#e4a13b;
@@ -21,63 +22,63 @@
   --text:#202b3b;
   --muted:#758197;
   --border:#e4e9f1;
-  --radius:16px;
-  --shadow:0 4px 18px rgba(24,40,65,.035);
+  --radius:10px;
+  --shadow:0 6px 28px rgba(15,30,45,.06);
 }
 *{box-sizing:border-box}
 body{
   margin:0;background:var(--bg);color:var(--text);
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-  font-size:14px;line-height:1.5
+  font-size:15px;line-height:1.5
 }
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
-  outline:3px solid #3478f655;outline-offset:2px
+  outline:3px solid #1f6feb55;outline-offset:2px
 }
 a{color:var(--blue)}
 .app{min-height:100vh}
 .sidebar{
   position:fixed;inset:0 auto 0 0;width:252px;background:var(--navy);
-  color:#fff;padding:25px 17px;display:flex;flex-direction:column;z-index:10
+  color:#fff;padding:20px 16px;display:flex;flex-direction:column;z-index:10
 }
-.brand{display:flex;align-items:center;gap:12px;padding:0 8px 27px}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px 20px}
 .brand-icon{
-  width:44px;height:44px;border-radius:13px;background:var(--blue);
-  display:grid;place-items:center;font-size:24px;flex-shrink:0
+  width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--navy2));
+  display:grid;place-items:center;font-size:20px;flex-shrink:0;color:white;font-weight:700
 }
-.brand strong{display:block;font-size:19px;letter-spacing:-.5px}
-.brand small{display:block;color:#a8b9cf;font-size:10px;letter-spacing:1.4px}
-.nav-label{padding:12px;font-size:10px;letter-spacing:1.8px;color:#879bb4}
-.nav{display:grid;gap:4px}
+.brand strong{display:block;font-size:18px;letter-spacing:-.4px}
+.brand small{display:block;color:#b7c8d9;font-size:10px;letter-spacing:1.4px}
+.nav-label{padding:12px;font-size:10px;letter-spacing:1.8px;color:#a3b8d0}
+.nav{display:grid;gap:6px}
 .nav button{
   display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-  padding:12px;border:0;border-radius:10px;background:transparent;color:#c3cede;
-  font-weight:500
+  padding:12px;border:0;border-radius:9px;background:transparent;color:#cbd8ea;
+  font-weight:600
 }
-.nav button:hover,.nav button.active{background:#263953;color:#fff}
+.nav button:hover,.nav button.active{background:#153145;color:#fff}
 .nav .nav-icon{width:22px;text-align:center;font-size:18px}
-.sidebar-bottom{margin-top:auto;border-top:1px solid #33445c;padding:17px 8px 0}
+.sidebar-bottom{margin-top:auto;border-top:1px solid #223746;padding:14px 8px 0}
 .sidebar-bottom small{color:#a3b3c6}
 .main{margin-left:252px;min-height:100vh}
 .topbar{
-  height:77px;background:#fff;border-bottom:1px solid var(--border);
+  height:72px;background:#fff;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
-  gap:15px;padding:0 32px
+  gap:15px;padding:0 28px
 }
 .topbar h2{margin:0;font-size:18px;letter-spacing:-.3px}
 .topbar p{margin:3px 0 0;color:var(--muted);font-size:12px}
 .top-actions{display:flex;align-items:center;gap:12px}
 .top-pill{border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-size:12px}
 .avatar{
-  display:grid;place-items:center;width:39px;height:39px;border-radius:50%;
-  background:#e4edff;color:#245dc0;font-weight:800
+  display:grid;place-items:center;width:40px;height:40px;border-radius:50%;
+  background:#eaf3ff;color:#103d80;font-weight:800
 }
-.content{max-width:1500px;margin:auto;padding:28px 32px}
+.content{max-width:1200px;margin:auto;padding:28px 28px}
 .page{display:none}
 .page.active{display:block}
-.welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:23px}
-h1{font-size:27px;line-height:1.2;letter-spacing:-.9px;margin:0}
+.welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px}
+h1{font-size:26px;line-height:1.15;letter-spacing:-.6px;margin:0}
 .subtitle{margin:7px 0 0;color:var(--muted)}
 .button{
   display:inline-flex;justify-content:center;align-items:center;gap:8px;
@@ -85,98 +86,116 @@ h1{font-size:27px;line-height:1.2;letter-spacing:-.9px;margin:0}
   font-weight:650;white-space:nowrap
 }
 .primary{background:var(--blue);color:white}
-.primary:hover{background:#2266de}
+.primary:hover{background:#145fcf}
 .secondary{background:#fff;border-color:var(--border);color:var(--text)}
 .secondary:hover{background:#f8fafc}
 .danger{background:#fff0f0;border-color:#ffe0e0;color:var(--red)}
 .small-button{padding:6px 9px;font-size:12px}
-.grid{display:grid;gap:17px}
-.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:21px;box-shadow:var(--shadow);min-width:0}
+.grid{display:grid;gap:16px}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);min-width:0}
 .stat-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.stat-label{color:var(--muted);font-size:12px;font-weight:650}
-.stat-icon{width:39px;height:39px;border-radius:11px;display:grid;place-items:center;font-size:19px}
-.blue-bg{background:#edf4ff;color:#3478f6}
+.stat-label{color:var(--muted);font-size:12px;font-weight:700}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px}
+.blue-bg{background:#eef6ff;color:var(--blue)}
 .green-bg{background:#e7f8f1;color:#119b72}
-.amber-bg{background:#fff4e1;color:#b87b1a}
+.amber-bg{background:#fff8f0;color:#b87b1a}
 .red-bg{background:#ffeded;color:#d94343}
-.stat-value{font-size:29px;font-weight:800;letter-spacing:-1px;margin:13px 0 1px}
+.stat-value{font-size:28px;font-weight:800;letter-spacing:-1px;margin:12px 0 1px}
 .stat-note{font-size:11px;color:var(--muted)}
-.two-col{grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);margin-bottom:18px}
-.card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+.two-col{grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);margin-bottom:18px}
+.card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .card-heading h3{margin:0;font-size:15px;letter-spacing:-.2px}
 .card-heading p{margin:4px 0 0;color:var(--muted);font-size:12px}
-.badge{display:inline-flex;align-items:center;border-radius:30px;padding:5px 9px;font-size:10px;font-weight:750;background:#e7f8f1;color:#087f5b}
-.badge.amber{background:#fff4e1;color:#98620e}
+.badge{display:inline-flex;align-items:center;border-radius:20px;padding:6px 10px;font-size:11px;font-weight:700;background:#eaf8f2;color:#087f5b}
+.badge.amber{background:#fff8f0;color:#98620e}
 .badge.red{background:#ffeded;color:#a52e2e}
-.progress-row{margin:20px 0}
-.progress-label{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px}
+.progress-row{margin:16px 0}
+.progress-label{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:13px}
 .progress-label span:last-child{color:var(--muted)}
-.track{height:8px;background:#edf1f6;border-radius:20px;overflow:hidden}
+.track{height:10px;background:#f1f5f9;border-radius:20px;overflow:hidden}
 .bar{height:100%;width:0;border-radius:20px;background:var(--blue)}
 .bar.green{background:var(--green)}
 .bar.amber{background:var(--amber)}
-.notice{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.65;margin-top:15px}
-.notice.info{background:#edf4ff;color:#28568e}
-.notice.warn{background:#fff5e6;color:#805511}
+.notice{padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.65;margin-top:12px}
+.notice.info{background:#edf4ff;color:#155a9a}
+.notice.warn{background:#fff7ed;color:#805511}
 .notice.error{background:#fff0f0;color:#a52e2e}
-.activity{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--border)}
+.activity{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}
 .activity:last-child{border-bottom:0}
-.activity-icon{width:38px;height:38px;border-radius:10px;background:#f0f4fa;display:grid;place-items:center;flex-shrink:0}
+.activity-icon{width:40px;height:40px;border-radius:10px;background:#f4f8fc;display:grid;place-items:center;flex-shrink:0}
 .activity-body{min-width:0;flex:1}
-.activity strong{display:block;font-size:12px}
-.activity small{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}
-.duration{font-size:12px;font-weight:750;white-space:nowrap}
-.empty{padding:30px 12px;text-align:center;color:var(--muted);font-size:13px}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.activity strong{display:block;font-size:13px}
+.activity small{display:block;color:var(--muted);font-size:12px;margin-top:4px;overflow-wrap:anywhere}
+.duration{font-size:13px;font-weight:750;white-space:nowrap}
+.empty{padding:24px 12px;text-align:center;color:var(--muted);font-size:13px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field.full{grid-column:1/-1}
-.field label{font-size:12px;font-weight:700;color:#485568}
+.field label{font-size:12px;font-weight:700;color:#3b5463}
 input,select,textarea{
   width:100%;min-width:0;border:1px solid #d8e0eb;border-radius:9px;
-  padding:11px 12px;background:#fff;color:var(--text)
+  padding:10px 12px;background:#fff;color:var(--text)
 }
 textarea{resize:vertical}
-.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:19px}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .table-wrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
-th{background:#f8fafc;color:var(--muted);font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+th{background:#f8fafc;color:var(--muted);font-size:11px;letter-spacing:.5px;text-transform:uppercase}
 td{max-width:270px;overflow-wrap:anywhere}
-.small-text{color:var(--muted);font-size:11px}
-.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:17px}
+.small-text{color:var(--muted);font-size:12px}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .filter-row input,.filter-row select{max-width:260px}
-.footer-note{font-size:11px;line-height:1.8;color:var(--muted);margin:24px 0 0}
+.footer-note{font-size:12px;line-height:1.7;color:var(--muted);margin:20px 0 0}
 .quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.quick-card{border:1px solid var(--border);padding:15px;border-radius:12px}
+.quick-card{border:1px solid var(--border);padding:14px;border-radius:12px}
 .quick-card strong{display:block;font-size:13px}
-.quick-card p{color:var(--muted);font-size:11px;margin:5px 0 0}
+.quick-card p{color:var(--muted);font-size:12px;margin:6px 0 0}
 .hidden{display:none!important}
+/* Toasts and confirm modal */
+.toast{position:fixed;right:18px;bottom:18px;background:#0f2940;color:white;padding:12px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9999;min-width:180px}
+.toast.success{background:linear-gradient(90deg,#1f6feb,#0f4bb8)}
+.toast.warn{background:#ff8b00}
+.toast.error{background:#c62828}
+#confirmModal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,.4);display:grid;place-items:center;z-index:9998}
+.confirm-card{background:#fff;padding:18px;border-radius:10px;max-width:520px;width:calc(100% - 40px);box-shadow:var(--shadow)}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.confirm-title{font-weight:800;margin:0 0 8px}
+.confirm-body{color:var(--muted);font-size:13px}
 @media(max-width:1100px){
  .sidebar{width:215px}.main{margin-left:215px}
- .content{padding:23px}.topbar{padding:0 23px}
+ .content{padding:20px}.topbar{padding:0 20px}
  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
  .two-col{grid-template-columns:1fr}
 }
 @media(max-width:650px){
  .sidebar{position:sticky;top:0;width:100%;height:auto;padding:10px 12px}
- .brand{padding:0;gap:9px}.brand-icon{width:36px;height:36px;font-size:20px}
+ .brand{padding:0;gap:9px}.brand-icon{width:36px;height:36px;font-size:18px}
  .brand strong{font-size:16px}.brand small{font-size:9px}
  .nav-label,.sidebar-bottom{display:none}
- .nav{display:flex;overflow-x:auto;gap:4px;margin-top:10px}
+ .nav{display:flex;overflow-x:auto;gap:6px;margin-top:10px}
  .nav button{width:auto;white-space:nowrap;padding:8px 10px;font-size:11px;gap:6px}
  .nav .nav-icon{width:auto;font-size:14px}
  .main{margin-left:0}
- .topbar{height:59px;padding:0 14px}
+ .topbar{height:58px;padding:0 12px}
  .topbar h2{font-size:15px}.topbar p,.top-pill{display:none}
- .content{padding:19px 12px}
+ .content{padding:16px 10px}
  .welcome{align-items:flex-start;flex-direction:column}
- h1{font-size:23px}.welcome>.button{width:100%}
- .stats{gap:10px}.card{padding:15px}
- .stat-value{font-size:24px}.stat-label{font-size:11px}
+ h1{font-size:22px}.welcome>.button{width:100%}
+ .stats{gap:10px}.card{padding:14px}
+ .stat-value{font-size:22px}.stat-label{font-size:11px}
  .stat-icon{width:31px;height:31px}
  .form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}
  .quick-grid{grid-template-columns:1fr}
+}
+/* Print */
+@media print{
+  .sidebar,.topbar,.button,.form-actions,.nav,.footer-note,.quick-grid{display:none!important}
+  body{background:white;color:#000}
+  .content{padding:0}
+  .card{border:none;box-shadow:none}
+  table{font-size:12px}
 }
 </style>
 </head>
@@ -184,7 +203,13 @@ td{max-width:270px;overflow-wrap:anywhere}
 <div class="app">
 <aside class="sidebar">
   <div class="brand">
-    <div class="brand-icon">🚛</div>
+    <div class="brand-icon" aria-hidden>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M3 13h12v6H3z" fill="white" opacity="0.15"/>
+        <path d="M16 6h3v7h-3z" fill="white" opacity="0.9"/>
+        <path d="M2 8h12v2H2z" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
     <div><strong>Logbook Master</strong><small>AUSTRALIAN LOGBOOK</small></div>
   </div>
   <div class="nav-label">WORKSPACE</div>
@@ -217,15 +242,15 @@ td{max-width:270px;overflow-wrap:anywhere}
   </div>
 
   <div class="grid stats">
-    <div class="card"><div class="stat-top"><span class="stat-label">Today's work</span><span class="stat-icon blue-bg">◷</span></div><div class="stat-value" id="todayWork">0h 00m</div><div class="stat-note">Recorded work today</div></div>
-    <div class="card"><div class="stat-top"><span class="stat-label">Today's rest</span><span class="stat-icon green-bg">☾</span></div><div class="stat-value" id="todayRest">0h 00m</div><div class="stat-note">Recorded rest today</div></div>
-    <div class="card"><div class="stat-top"><span class="stat-label">Last 7 × 24 hours</span><span class="stat-icon amber-bg">▤</span></div><div class="stat-value" id="weekWork">0h 00m</div><div class="stat-note">Elapsed-time summary</div></div>
-    <div class="card"><div class="stat-top"><span class="stat-label">Last 14 × 24 hours</span><span class="stat-icon red-bg">◴</span></div><div class="stat-value" id="fortnightWork">0h 00m</div><div class="stat-note">Elapsed-time summary</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Today's work</span><span class="stat-icon blue-bg">◷</span></div><div class="stat-value" id="todayWork">0h 00m</div><div class="stat-note">Recorded today</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Today's rest</span><span class="stat-icon green-bg">☾</span></div><div class="stat-value" id="todayRest">0h 00m</div><div class="stat-note">Recorded rest</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Last 7 × 24 hours</span><span class="stat-icon amber-bg">▤</span></div><div class="stat-value" id="weekWork">0h 00m</div><div class="stat-note">Rolling 7-day total</div></div>
+    <div class="card"><div class="stat-top"><span class="stat-label">Last 14 × 24 hours</span><span class="stat-icon red-bg">◴</span></div><div class="stat-value" id="fortnightWork">0h 00m</div><div class="stat-note">Rolling 14-day total</div></div>
   </div>
 
   <div class="grid two-col">
     <div class="card">
-      <div class="card-heading"><div><h3>Work-hour overview</h3><p>Recorded activity compared with configurable references</p></div><span class="badge amber">Guidance only</span></div>
+      <div class="card-heading"><div><h3>Work-hour overview</h3><p>Recorded activity compared with configurable references</p></div><span class="badge amber">Guidance only — not legal advice</span></div>
       <div class="progress-row"><div class="progress-label"><span>Today's work</span><span id="todayProgressText">0h 00m</span></div><div class="track"><div class="bar" id="todayBar"></div></div></div>
       <div class="progress-row"><div class="progress-label"><span>7-day recorded work</span><span id="weekProgressText">0h 00m</span></div><div class="track"><div class="bar green" id="weekBar"></div></div></div>
       <div class="progress-row"><div class="progress-label"><span>14-day recorded work</span><span id="fortnightProgressText">0h 00m</span></div><div class="track"><div class="bar amber" id="fortnightBar"></div></div></div>
@@ -245,7 +270,7 @@ td{max-width:270px;overflow-wrap:anywhere}
     <div id="recentList"></div>
   </div>
 
-  <div class="grid quick-grid" style="margin-top:18px">
+  <div class="grid quick-grid" style="margin-top:16px">
     <div class="quick-card"><strong>📋 Keep accurate records</strong><p>Record each activity promptly and correct mistakes in your source records.</p></div>
     <div class="quick-card"><strong>🚦 Check before driving</strong><p>Never rely on this prototype alone to decide whether you are fit or legally permitted to drive.</p></div>
     <div class="quick-card"><strong>💾 Export a backup</strong><p>Your records are stored in this browser. Export them regularly to protect against data loss.</p></div>
@@ -259,7 +284,7 @@ td{max-width:270px;overflow-wrap:anywhere}
     <form id="activityForm">
       <div class="form-grid">
         <div class="field"><label for="aType">Activity type *</label><select id="aType" required><option value="work">Work (including driving)</option><option value="rest">Rest</option></select></div>
-        <div class="field"><label for="aKind">Activity detail</label><select id="aKind"><option>Driving</option><option>Loading / unloading</option><option>Vehicle inspection / maintenance</option><option>Other work</option><option>Rest break</option><option>Stationary rest</option><option>Night rest</option><option>Other rest</option></select></div>
+        <div class="field"><label for="aKind">Activity detail</label><select id="aKind"><option>Driving</option><option>Loading / unloading</option><option>Vehicle inspection / maintenance</option><option>Other</option></select></div>
         <div class="field"><label for="aStartDate">Start date *</label><input id="aStartDate" type="date" required></div>
         <div class="field"><label for="aStartTime">Start time *</label><input id="aStartTime" type="time" required></div>
         <div class="field"><label for="aEndDate">End date *</label><input id="aEndDate" type="date" required></div>
@@ -268,7 +293,7 @@ td{max-width:270px;overflow-wrap:anywhere}
         <div class="field"><label for="aTo">Destination / to</label><input id="aTo" placeholder="e.g. Rockhampton, QLD"></div>
         <div class="field full"><label for="aNotes">Notes</label><textarea id="aNotes" rows="3" placeholder="Trip, load, job or other details"></textarea></div>
       </div>
-      <div class="notice info">Entries spanning midnight must use the correct end date. This prototype does not verify legal rest-break eligibility, sleeper-berth conditions or diary obligations.</div>
+      <div id="activityValidation" class="notice info hidden" role="status" aria-live="polite"></div>
       <div class="form-actions"><button class="button primary" type="submit">Save activity</button><button class="button secondary" type="reset">Clear form</button></div>
     </form>
   </div>
@@ -278,7 +303,7 @@ td{max-width:270px;overflow-wrap:anywhere}
   <div class="welcome"><div><h1>Logbook history</h1><p class="subtitle">Review and export saved records.</p></div><button class="button primary" id="exportCsv">↓ Export CSV</button></div>
   <div class="card">
     <div class="card-heading"><div><h3>All activities</h3><p id="historyCount">0 entries</p></div><button class="button secondary" id="clearHistory">Clear all</button></div>
-    <div class="filter-row"><input id="historySearch" placeholder="Search location, activity or notes"><select id="historyType"><option value="all">All activity types</option><option value="work">Work only</option><option value="rest">Rest only</option></select></div>
+    <div class="filter-row"><input id="historySearch" placeholder="Search location, activity or notes"><select id="historyType"><option value="all">All activity types</option><option value="work">Work</option><option value="rest">Rest</option></select></div>
     <div class="table-wrap"><table><thead><tr><th>Start</th><th>End</th><th>Activity</th><th>Duration</th><th>Location</th><th>Notes</th><th>Action</th></tr></thead><tbody id="historyTable"></tbody></table></div>
   </div>
 </section>
@@ -300,7 +325,7 @@ td{max-width:270px;overflow-wrap:anywhere}
       <div class="form-actions"><button class="button primary" type="submit">Save trip</button></div>
     </form>
   </div>
-  <div class="card" style="margin-top:18px">
+  <div class="card" style="margin-top:14px">
     <div class="card-heading"><div><h3>Saved trips</h3><p id="tripCount">0 trips</p></div><button class="button secondary" id="exportTrips">↓ Export trips CSV</button></div>
     <div class="table-wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Origin</th><th>Destination</th><th>Distance</th><th>Load / notes</th><th>Action</th></tr></thead><tbody id="tripTable"></tbody></table></div>
   </div>
@@ -344,7 +369,7 @@ td{max-width:270px;overflow-wrap:anywhere}
         <div class="field"><label for="referenceHours">Dashboard reference (hours/day)</label><input id="referenceHours" type="number" min="1" max="24" step=".25" value="12"></div>
         <div class="field full"><label for="configNotes">Accreditation / operating notes</label><textarea id="configNotes" rows="3" placeholder="Optional reference only. Do not enter confidential information."></textarea></div>
       </div>
-      <div class="notice warn">Selecting an hours option does not activate its legal calculations. AFM and ACH conditions must be verified against the applicable accreditation and current law. Two-up and bus/coach variations also require specific rules.</div>
+      <div class="notice warn">Selecting an hours option does not activate its legal calculations. AFM and ACH conditions must be verified against the applicable accreditation and current law. This app provides guidance only.</div>
       <div class="form-actions"><button class="button primary" type="submit">Save configuration</button></div>
     </form>
   </div>
@@ -354,35 +379,41 @@ td{max-width:270px;overflow-wrap:anywhere}
   <div class="welcome"><div><h1>Help & regulatory information</h1><p class="subtitle">Official resources for Australian heavy-vehicle drivers.</p></div></div>
   <div class="card">
     <div class="card-heading"><div><h3>NHVR official guidance</h3><p>Consult the current version applicable to your operation.</p></div></div>
-    <div class="activity"><div class="activity-icon">📘</div><div class="activity-body"><strong>Work and rest hours</strong><small>Hours options and relevant work/rest requirements.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/work-and-rest-hours" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
-    <div class="activity"><div class="activity-icon">🧮</div><div class="activity-body"><strong>Counting time</strong><small>Relevant counting periods and rest-time calculations.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/counting-time" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
-    <div class="activity"><div class="activity-icon">📝</div><div class="activity-body"><strong>Record-keeping requirements</strong><small>Work diary and record-keeping obligations.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/record-keeping-requirements" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
-    <div class="activity"><div class="activity-icon">📱</div><div class="activity-body"><strong>Electronic Work Diaries</strong><small>Requirements for approved EWD systems.</small><a href="https://www.nhvr.gov.au/safety-accreditation-compliance/fatigue-management/electronic-work-diary-ewd" target="_blank" rel="noopener">Open NHVR guidance ↗</a></div></div>
-    <div class="activity"><div class="activity-icon">🚦</div><div class="activity-body"><strong>Alternative Compliance Accreditation</strong><small>Check current accreditation information and applicable conditions.</small><a href="https://www.nhvr.gov.au/" target="_blank" rel="noopener">Open NHVR website ↗</a></div></div>
+    <div class="activity"><div class="activity-icon">📘</div><div class="activity-body"><strong>Work and rest hours</strong><small>Hours options and relevant work/rest requirements.</small><a href="https://www.nhvr.gov.au" target="_blank" rel="noopener">Visit NHVR</a></div></div>
+    <div class="activity"><div class="activity-icon">🧮</div><div class="activity-body"><strong>Counting time</strong><small>Relevant counting periods and rest-time calculations.</small></div></div>
+    <div class="activity"><div class="activity-icon">📝</div><div class="activity-body"><strong>Record-keeping requirements</strong><small>Work diary and record-keeping obligations.</small></div></div>
   </div>
-  <div class="card" style="margin-top:18px">
+  <div class="card" style="margin-top:14px">
     <div class="card-heading"><div><h3>How the calculator works</h3><p>Understand what these figures do and do not mean.</p></div></div>
-    <p>Daily work and rest totals are derived from saved activity intervals. Seven-day and fourteen-day summaries use elapsed time immediately before the current moment. These are descriptive summaries, not a complete implementation of statutory counting rules.</p>
-    <p>The app does not yet automatically determine local-area versus interstate diary obligations, establish legally qualifying rest breaks, apply every hours-option variation, validate accreditation conditions, or verify permits and vehicle access.</p>
-    <p>Vehicle configurations are descriptive labels. Selecting a B-double, road train, triple or quad combination does not establish that it is permitted on a particular road.</p>
+    <p>Daily work and rest totals are derived from saved activity intervals. Seven-day and fourteen-day summaries use elapsed time immediately before the current moment. These are descriptive summaries and do not replace legal advice.</p>
+    <p>The app does not yet automatically determine local-area versus interstate diary obligations, establish legally qualifying rest breaks, apply every hours-option variation, validate accreditations, or certify compliance with NHVR rules.</p>
   </div>
 </section>
 
 <div class="footer-note">
-  <strong>Important:</strong> Logbook Master Personal Edition is an independent prototype, not an NHVR product and not an approved Electronic Work Diary. Calculations are preliminary summaries only. Do not rely on this prototype as your sole record where legislation requires a work diary or other record. Verify your obligations using current official guidance and your applicable accreditation conditions. Never drive while fatigued or unfit to drive.
+  <strong>Important:</strong> Logbook Master Personal Edition is an independent prototype, not an NHVR product and not an approved Electronic Work Diary. Calculations are preliminary summaries only and should not be relied upon for legal compliance.
   <br>Data is stored in this browser only. Clearing browser data or changing devices can make records unavailable. Export regular backups.
 </div>
 </div>
 </main>
 </div>
 
+<!-- Toast and confirm modal markup -->
+<div id="toastContainer" aria-live="polite" class="hidden"></div>
+<div id="confirmModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="confirm-card">
+    <div id="confirmTitle" class="confirm-title">Confirm</div>
+    <div id="confirmBody" class="confirm-body"></div>
+    <div class="confirm-actions"><button id="confirmCancel" class="button secondary">Cancel</button><button id="confirmOk" class="button primary">Continue</button></div>
+  </div>
+</div>
+
 <script>
 "use strict";
 
 /*
- * LOGBOOK MASTER — PERSONAL EDITION
- * Single-file, local-first prototype.
- * Arithmetic summaries are NOT statutory compliance determinations.
+ * LOGBOOK MASTER — PROFESSIONAL UI REFRESH
+ * Adds non-blocking toasts, confirm modal and basic NHVR-style limit checks + test runner
  */
 
 const $ = id => document.getElementById(id);
@@ -425,9 +456,45 @@ function saveState(){
     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
     return true;
   }catch(error){
-    alert("Your browser could not save the data. Export your records and check available storage.");
+    showToast("Your browser could not save the data. Export your records and check available storage.","error");
     return false;
   }
+}
+
+/* Toast helper */
+function showToast(message,type="success",duration=3500){
+  const container = $("toastContainer");
+  container.classList.remove("hidden");
+  container.innerHTML = `<div class=\"toast ${type}\">${escapeHTML(message)}</div>`;
+  setTimeout(()=>{
+    container.innerHTML = '';
+    container.classList.add('hidden');
+  }, duration);
+}
+
+/* Confirm modal - returns Promise<boolean> */
+function showConfirm(title,body){
+  return new Promise(resolve=>{
+    const modal=$("confirmModal");
+    $("confirmTitle").textContent = title;
+    $("confirmBody").textContent = body;
+    modal.classList.remove('hidden');
+
+    function cleanup(result){
+      modal.classList.add('hidden');
+      document.removeEventListener('keydown',onKey);
+      $('confirmOk').removeEventListener('click',ok);
+      $('confirmCancel').removeEventListener('click',cancel);
+      resolve(result);
+    }
+    function ok(){cleanup(true)}
+    function cancel(){cleanup(false)}
+    function onKey(e){ if(e.key==='Escape') cancel(); }
+
+    $('confirmOk').addEventListener('click',ok);
+    $('confirmCancel').addEventListener('click',cancel);
+    document.addEventListener('keydown',onKey);
+  });
 }
 
 function localDate(date=new Date()){
@@ -515,6 +582,44 @@ function setProgress(id,value,maximum){
   $(id).style.width=pct+"%";
 }
 
+/* NHVR-style checks (basic): daily reference, 7-day and 14-day limits */
+function overlapMinutesBetweenInterval(entryStart,entryEnd,rangeStart,rangeEnd){
+  const overlap = Math.max(0,Math.min(entryEnd,rangeEnd)-Math.max(entryStart,rangeStart));
+  return overlap/60000;
+}
+
+function checkHoursLimits(newEntry){
+  // returns array of warning strings (empty if none)
+  const warnings=[];
+  const referenceMinutes = (Number(state.settings.referenceHours)||12)*60;
+  // daily check for date(s) overlapped by new entry
+  const startDay = new Date(newEntry.start);
+  startDay.setHours(0,0,0,0);
+  const endDay = new Date(newEntry.end);
+  endDay.setHours(0,0,0,0);
+  for(let day = new Date(startDay); day<=endDay; day.setDate(day.getDate()+1)){
+    const dayStart = new Date(day).setHours(0,0,0,0);
+    const dayEnd = dayStart + 86400000;
+    const existing = totalTypeBetween('work', dayStart, dayEnd);
+    const added = overlapMinutesBetweenInterval(newEntry.start,newEntry.end,dayStart,dayEnd);
+    if(existing + added > referenceMinutes + 0.0001){
+      warnings.push(`Day ${new Date(dayStart).toLocaleDateString('en-AU')} would exceed the daily reference of ${state.settings.referenceHours}h.`);
+    }
+  }
+
+  // 7-day and 14-day rolling checks using now as reference (consistent with dashboard)
+  const now = Date.now();
+  const weekExisting = totalTypeBetween('work', now-7*86400000, now);
+  const weekAdded = overlapMinutesBetweenInterval(newEntry.start,newEntry.end, now-7*86400000, now);
+  if(weekExisting + weekAdded > 72*60 + 0.0001) warnings.push('7-day rolling total would exceed 72 hours.');
+
+  const fortnightExisting = totalTypeBetween('work', now-14*86400000, now);
+  const fortnightAdded = overlapMinutesBetweenInterval(newEntry.start,newEntry.end, now-14*86400000, now);
+  if(fortnightExisting + fortnightAdded > 144*60 + 0.0001) warnings.push('14-day rolling total would exceed 144 hours.');
+
+  return warnings;
+}
+
 function renderDashboard(){
   const today=localDate();
   const todayWork=dailyTotal("work",today);
@@ -552,14 +657,7 @@ function renderDashboard(){
 
   const recent=[...state.activities].sort((a,b)=>b.start-a.start).slice(0,5);
   $("recentList").innerHTML=recent.length?recent.map(item=>`
-    <div class="activity">
-      <div class="activity-icon">${item.type==="work"?"🚛":"☾"}</div>
-      <div class="activity-body">
-        <strong>${escapeHTML(item.kind)}</strong>
-        <small>${escapeHTML(formatDateTime(item.start))} · ${escapeHTML(item.from||"Location not entered")}</small>
-      </div>
-      <div class="duration">${durationText(durationMinutes(item))}</div>
-    </div>
+    <div class=\"activity\">\n      <div class=\"activity-icon\">${item.type==="work"?"🚛":"☾"}</div>\n      <div class=\"activity-body\">\n        <strong>${escapeHTML(item.kind)}</strong>\n        <small>${escapeHTML(formatDateTime(item.start))} · ${escapeHTML(item.from||"Location not entered")}</small>\n      </div>\n      <div class=\"duration\">${durationText(durationMinutes(item))}</div>\n    </div>
   `).join(""):'<div class="empty">No activity yet. Record your first work or rest entry to get started.</div>';
 }
 
@@ -568,7 +666,7 @@ function renderHistory(){
   const type=$("historyType").value;
   const all=[...state.activities].sort((a,b)=>b.start-a.start);
   const filtered=all.filter(item=>{
-    if(type!=="all"&&item.type!==type)return false;
+    if(type!="all"&&item.type!==type)return false;
     const haystack=[item.kind,item.from,item.to,item.notes,item.type].join(" ").toLowerCase();
     return !query||haystack.includes(query);
   });
@@ -579,13 +677,13 @@ function renderHistory(){
     <tr>
       <td>${escapeHTML(formatDateTime(item.start))}</td>
       <td>${escapeHTML(formatDateTime(item.end))}</td>
-      <td>${item.type==="work"?"Work":"Rest"}<br><span class="small-text">${escapeHTML(item.kind)}</span></td>
+      <td>${item.type==="work"?"Work":"Rest"}<br><span class=\"small-text\">${escapeHTML(item.kind)}</span></td>
       <td>${durationText(durationMinutes(item))}</td>
       <td>${escapeHTML([item.from,item.to].filter(Boolean).join(" → ")||"—")}</td>
       <td>${escapeHTML(item.notes||"—")}</td>
-      <td><button class="button danger small-button" data-delete-activity="${escapeHTML(item.id)}">Delete</button></td>
+      <td><button class=\"button danger small-button\" data-delete-activity=\"${escapeHTML(item.id)}\">Delete</button></td>
     </tr>
-  `).join(""):'<tr><td colspan="7" class="empty">No matching records.</td></tr>';
+  `).join(''):'<tr><td colspan="7" class="empty">No matching records.</td></tr>';
 }
 
 function renderTrips(){
@@ -599,9 +697,9 @@ function renderTrips(){
       <td>${escapeHTML(trip.to)}</td>
       <td>${trip.distance!==""&&trip.distance!=null?escapeHTML(trip.distance)+" km":"—"}</td>
       <td>${escapeHTML([trip.load,trip.notes].filter(Boolean).join(" · ")||"—")}</td>
-      <td><button class="button danger small-button" data-delete-trip="${escapeHTML(trip.id)}">Delete</button></td>
+      <td><button class=\"button danger small-button\" data-delete-trip=\"${escapeHTML(trip.id)}\">Delete</button></td>
     </tr>
-  `).join(""):'<tr><td colspan="7" class="empty">No trip records yet.</td></tr>';
+  `).join(''):'<tr><td colspan="7" class="empty">No trip records yet.</td></tr>';
 }
 
 function showPage(name){
@@ -659,12 +757,13 @@ $("settingsForm").addEventListener("submit",event=>{
 
   if(saveState()){
     renderDashboard();
-    alert("Your configuration has been saved on this device.");
+    showToast("Your configuration has been saved on this device.");
     showPage("dashboard");
   }
 });
 
-$("activityForm").addEventListener("submit",event=>{
+// Activity form: improved validation and NHVR-style checks
+$("activityForm").addEventListener("submit",async event=>{
   event.preventDefault();
 
   const start=localTimestamp($("aStartDate").value,$("aStartTime").value);
@@ -672,8 +771,12 @@ $("activityForm").addEventListener("submit",event=>{
   const type=$("aType").value;
 
   if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){
-    alert("Please enter valid dates and times. The end must be after the start.");
+    $("activityValidation").classList.remove('hidden');
+    $("activityValidation").textContent = "Please enter valid dates and times. The end must be after the start.";
     return;
+  } else {
+    $("activityValidation").classList.add('hidden');
+    $("activityValidation").textContent = '';
   }
 
   // Require review rather than silently double-counting overlapping entries.
@@ -687,10 +790,11 @@ $("activityForm").addEventListener("submit",event=>{
       ?"This time overlaps an existing entry of the same type. Review the existing records before saving."
       :"This time overlaps another work/rest entry. Check the records carefully. Save the overlapping entry anyway?";
     if(sameType){
-      alert(message);
+      showToast(message,'warn');
       return;
     }
-    if(!confirm(message))return;
+    const proceed = await showConfirm('Overlapping entry', message);
+    if(!proceed) return;
   }
 
   const entry={
@@ -702,6 +806,13 @@ $("activityForm").addEventListener("submit",event=>{
     notes:$("aNotes").value.trim()
   };
 
+  // run NHVR-like checks and warn if limit breaches occur
+  const warnings = checkHoursLimits(entry);
+  if(warnings.length){
+    const proceed = await showConfirm('Limit check warning', warnings.join(' \n ')+"\n\nDo you want to save this entry anyway?");
+    if(!proceed) return;
+  }
+
   state.activities.push(entry);
   state.activities.sort((a,b)=>a.start-b.start);
 
@@ -712,7 +823,7 @@ $("activityForm").addEventListener("submit",event=>{
     $("aStartTime").value="08:00";
     $("aEndTime").value="09:00";
     renderDashboard();
-    alert("Activity saved.");
+    showToast("Activity saved.");
     showPage("dashboard");
   }
 });
@@ -720,23 +831,26 @@ $("activityForm").addEventListener("submit",event=>{
 $("historySearch").addEventListener("input",renderHistory);
 $("historyType").addEventListener("change",renderHistory);
 
-$("historyTable").addEventListener("click",event=>{
+$("historyTable").addEventListener("click",async event=>{
   const button=event.target.closest("[data-delete-activity]");
   if(!button)return;
-  if(!confirm("Delete this activity record?"))return;
+  const confirm = await showConfirm('Delete activity','Delete this activity record? This action cannot be undone.');
+  if(!confirm) return;
 
   state.activities=state.activities.filter(item=>item.id!==button.dataset.deleteActivity);
   if(saveState()){
     renderHistory();
     renderDashboard();
+    showToast('Activity deleted','success');
   }
 });
 
-$("clearHistory").addEventListener("click",()=>{
-  if(!state.activities.length){alert("There are no activity records to clear.");return;}
-  if(!confirm("Permanently delete every activity record? Export a backup first if needed."))return;
+$("clearHistory").addEventListener("click",async ()=>{
+  if(!state.activities.length){showToast("There are no activity records to clear.",'warn');return;}
+  const confirmed = await showConfirm('Clear history','Permanently delete every activity record? Export a backup first if needed.');
+  if(!confirmed) return;
   state.activities=[];
-  if(saveState()){renderHistory();renderDashboard();}
+  if(saveState()){renderHistory();renderDashboard();showToast('All activity records deleted','success');}
 });
 
 $("tripForm").addEventListener("submit",event=>{
@@ -754,7 +868,7 @@ $("tripForm").addEventListener("submit",event=>{
   };
 
   if(!trip.date||!trip.from||!trip.to){
-    alert("Enter the date, origin and destination.");
+    showToast("Enter the date, origin and destination.",'warn');
     return;
   }
 
@@ -763,14 +877,15 @@ $("tripForm").addEventListener("submit",event=>{
     $("tripForm").reset();
     $("tDate").value=localDate();
     renderTrips();
-    alert("Trip saved.");
+    showToast("Trip saved.");
   }
 });
 
-$("tripTable").addEventListener("click",event=>{
+$("tripTable").addEventListener("click",async event=>{
   const button=event.target.closest("[data-delete-trip]");
   if(!button)return;
-  if(!confirm("Delete this trip?"))return;
+  const ok = await showConfirm('Delete trip','Delete this trip?');
+  if(!ok) return;
   state.trips=state.trips.filter(trip=>trip.id!==button.dataset.deleteTrip);
   if(saveState())renderTrips();
 });
@@ -801,6 +916,7 @@ $("exportCsv").addEventListener("click",()=>{
     "Start ISO","End ISO","Activity type","Activity detail",
     "Duration minutes","From","To","Notes"
   ],rows);
+  showToast('Activities exported','success');
 });
 
 $("exportTrips").addEventListener("click",()=>{
@@ -811,6 +927,7 @@ $("exportTrips").addEventListener("click",()=>{
   downloadCSV("logbook-master-trips-"+localDate()+".csv",[
     "Date","Vehicle","Origin","Destination","Distance km","Load","Notes"
   ],rows);
+  showToast('Trips exported','success');
 });
 
 // Initialise forms using the browser's local date.
@@ -829,6 +946,34 @@ loadSettings();
 renderDashboard();
 renderHistory();
 renderTrips();
+
+/* Basic test runner: run when URL contains #run-tests */
+function runBasicTests(){
+  const results=[];
+  // Test durationMinutes
+  const e={start:Date.now(),end:Date.now()+90*60000};
+  results.push({name:'durationMinutes',ok:Math.round(durationMinutes(e))===90});
+  // Test overlapMinutesBetweenInterval
+  const s=Date.now();
+  const overlap=overlapMinutesBetweenInterval(s,s+3600000,s+1800000,s+5400000); // 30 minutes
+  results.push({name:'overlap30min',ok:Math.round(overlap)===30});
+  // Test totalTypeBetween basic
+  const savedState = state.activities.slice();
+  state.activities.push({id:'_t',type:'work',start:Date.now()-7200000,end:Date.now()-3600000});
+  const tb = totalTypeBetween('work',Date.now()-10800000,Date.now());
+  results.push({name:'totalTypeBetween',ok:tb>=60});
+  // restore
+  state.activities = savedState;
+
+  console.group('Basic tests');
+  results.forEach(r=>console.log(r.name, r.ok? 'PASS':'FAIL'));
+  console.groupEnd();
+  const passed = results.filter(r=>r.ok).length;
+  showToast(`Tests: ${passed}/${results.length} passed`,'success',5000);
+}
+
+if(location.hash==='\#run-tests') runBasicTests();
+
 </script>
 </body>
 </html>
