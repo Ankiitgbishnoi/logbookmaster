@@ -7,13 +7,12 @@
   <meta name="description" content="Logbook Master — Australian heavy vehicle driver logbook and work/rest calculator.">
   <title>Logbook Master | Road Safety First</title>
 
-  <!-- CDNs for PDF generation and signature -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
   <style>
-    :root{
+    :root {
       --bg-hero-1: #07122b;
       --bg-hero-2: #082540;
       --accent: #44c2ff;
@@ -98,7 +97,7 @@
       <button onclick="selectView('14days')" id="nav-14days">14 Days</button>
       <button onclick="selectView('signature')" id="nav-sign">Signature</button>
       <button onclick="selectView('logbook')" id="nav-logbook">Logbook</button>
-      <div style="margin-top:18px;color:var(--muted);font-size:12px">Version 1.0 • <a href="https://logbookmaster.vercel.app" style="color:var(--accent)">logbookmaster.vercel.app</a></div>
+      <div style="margin-top:18px;color:var(--muted);font-size:12px">Version 1.1 • <a href="https://logbookmaster.vercel.app" style="color:var(--accent)">logbookmaster.vercel.app</a></div>
     </nav>
   </aside>
 
@@ -109,7 +108,7 @@
         <input type="search" placeholder="Search logs, drivers or rego" aria-label="Search">
       </div>
       <div class="header-cta">
-        <div class="avatar">A</div>
+        <div class="avatar" id="userBadge">D</div>
       </div>
     </div>
 
@@ -120,8 +119,8 @@
         <button class="tab-btn" id="tab-7days" onclick="switchTab('7days')">7 Days</button>
         <button class="tab-btn" id="tab-14days" onclick="switchTab('14days')">14 Days</button>
         <div class="controls">
-          <button class="btn ghost" onclick="openLogbookEditor()">Edit Details</button>
-          <button class="btn primary" onclick="generatePDF()">Generate PDF</button>
+          <button class="btn ghost" onclick="saveLogbookDraft(); openLogbookEditor();">Save Draft</button>
+          <button class="btn primary" onclick="saveLogbookDraft(); generatePDF();">Generate PDF</button>
         </div>
       </div>
 
@@ -129,29 +128,28 @@
         <div>
           <div class="card" id="main-panel">
             <h2 id="panel-title">Work</h2>
-            <p style="color:var(--muted);">Use the tabs to switch between Work/Rest summaries and print logbook pages. Click Generate PDF to create a realistic NHVR-style sample logbook page including driver details and a signature.</p>
-
+            <p style="color:var(--muted);">Use the tabs to switch between Work/Rest summaries and print logbook pages. Click Generate PDF to create a realistic NHVR-style sample logbook page including your saved signature.</p>
             <hr style="margin:12px 0;opacity:0.06">
 
             <div id="tab-content">
               <div class="tab-view" id="view-work">
                 <h3>Today's Work</h3>
-                <p>Driving: <strong>3h 20m</strong> • Remaining recommended rest: <strong>7h 40m</strong></p>
+                <p>Driving: <strong id="todaysDrive">3h 20m</strong> • Remaining recommended rest: <strong id="remainingRest">7h 40m</strong></p>
               </div>
 
               <div class="tab-view" id="view-rest" style="display:none">
                 <h3>Rest</h3>
-                <p>Last rest: <strong>10 hours</strong>. Ensure minimum breaks are observed.</p>
+                <p>Last rest: <strong id="lastRest">10 hours</strong>. Ensure minimum breaks are observed.</p>
               </div>
 
               <div class="tab-view" id="view-7days" style="display:none">
                 <h3>7 Days</h3>
-                <p>Total hours: <strong>38h</strong> • Recommended max: <strong>72h</strong></p>
+                <p>Total hours: <strong id="sevenDayHours">38h</strong> • Recommended max: <strong id="sevenDayMax">72h</strong></p>
               </div>
 
               <div class="tab-view" id="view-14days" style="display:none">
                 <h3>14 Days</h3>
-                <p>Total hours: <strong>74h</strong> • Review long-haul fatigue management.</p>
+                <p>Total hours: <strong id="fourteenDayHours">74h</strong> • Review long-haul fatigue management.</p>
               </div>
 
               <div class="tab-view" id="view-signature" style="display:none">
@@ -180,7 +178,7 @@
           <div class="card">
             <h3>Quick actions</h3>
             <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn primary" onclick="generatePDF()">Generate PDF</button>
+              <button class="btn primary" onclick="saveLogbookDraft(); generatePDF();">Generate PDF</button>
               <button class="btn ghost" onclick="printPreview()">Print Preview</button>
             </div>
           </div>
@@ -216,10 +214,12 @@
   </main>
 </div>
 
-<div id="print-area" style="position:fixed;left:-9999px;top:-9999px;">
-</div>
+<div id="print-area" style="position:fixed;left:-9999px;top:-9999px;"></div>
 
 <script>
+  const DEMO_EMAIL = 'demo@logbookmaster.com';
+  let currentUser = null;
+
   function selectView(v){
     ['dashboard','work','rest','7days','14days','signature','logbook'].forEach(id=>{
       const el=document.getElementById('nav-'+id);
@@ -289,6 +289,59 @@
     }
   }
 
+  async function fetchDashboard(){
+    const email = localStorage.getItem('logbook_user_email') || DEMO_EMAIL;
+    try {
+      const response = await fetch(`/api/dashboard?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      if (!data || !data.user) return;
+      currentUser = data.user;
+      localStorage.setItem('logbook_user_email', data.user.email);
+      document.getElementById('userBadge').innerText = (data.user.name || 'D').charAt(0).toUpperCase();
+
+      if (data.vehicles && data.vehicles.length) {
+        const first = data.vehicles[0];
+        document.getElementById('vehicleRego').value = first.registration || document.getElementById('vehicleRego').value;
+      }
+
+      if (data.stats) {
+        document.getElementById('todaysDrive').innerText = data.stats.driverHours ? `${data.stats.driverHours.toFixed(2)}h` : '3h 20m';
+        document.getElementById('remainingRest').innerText = data.stats.restHours ? `${data.stats.restHours.toFixed(1)}h` : '7h 40m';
+      }
+    } catch (error) {
+      console.error('Dashboard load failed', error);
+    }
+  }
+
+  async function saveLogbookDraft(){
+    const payload = {
+      email: localStorage.getItem('logbook_user_email') || DEMO_EMAIL,
+      driverName: document.getElementById('driverName').value,
+      driverId: document.getElementById('driverId').value,
+      vehicleRego: document.getElementById('vehicleRego').value,
+      securityCode: document.getElementById('securityCode').value,
+      startTime: '06:30',
+      endTime: '09:00',
+      natureOfWork: 'Driving — delivery run',
+      description: 'Saved from app dashboard.',
+      signatureData: localStorage.getItem('logbook_signature') || ''
+    };
+
+    try {
+      const response = await fetch('/api/logbooks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (result && result.success) {
+        console.log('Draft saved to backend', result.entry);
+      }
+    } catch (error) {
+      console.warn('Draft save failed; still available locally.', error);
+    }
+  }
+
   async function generatePDF(){
     const driver = document.getElementById('driverName').value || 'John Smith';
     const id = document.getElementById('driverId').value || '';
@@ -337,7 +390,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
           <div style="width:60%">
             <div style="font-size:12px;color:#222">Driver signature:</div>
-            <div style="margin-top:6px">${signatureData ? '<img src="'+signatureData+'" alt="signature" style="max-width:100%;height:80px;object-fit:contain">' : '<div style="border:1px dashed #ccc;height:80px;width:100%;display:flex;align-items:center;justify-content:center;color:#666">No signature</div>'}</div>
+            <div style="margin-top:6px">${signatureData ? '<img src="'+signatureData+'" alt="signature" style="max-width:100%;height:80px;object-fit:contain">' : '<div style="border:1px dashed #ccc;padding:16px;color:#666">No signature saved</div>'}</div>
           </div>
           <div style="text-align:right">
             <div style="font-size:12px;color:#222">Prepared by Logbook Master</div>
@@ -359,7 +412,7 @@
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.setProperties({title: 'Logbook - '+dateStr, subject: 'Logbook page', author: 'Logbook Master', keywords: 'logbook,security:'+secCode});
       pdf.save('logbook-'+dateStr.replace(/\//g,'-')+'.pdf');
-    } catch(err) {
+    } catch (err) {
       console.error(err); alert('Failed to generate PDF: '+err.message);
     }
   }
@@ -370,7 +423,11 @@
 
   function printPreview(){ generatePDF(); }
 
-  window.addEventListener('load', ()=>{ setupSignaturePad(); loadSavedSignaturePreview(); });
+  window.addEventListener('load', async ()=>{
+    setupSignaturePad();
+    loadSavedSignaturePreview();
+    await fetchDashboard();
+  });
 </script>
 </body>
 </html>
