@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "logbook_entries")
 public class LogbookEntry {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -50,107 +49,42 @@ public class LogbookEntry {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public User getUser() {
-        return user;
-    }
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public String getDriverName() { return driverName; }
+    public void setDriverName(String driverName) { this.driverName = driverName; }
 
-    public Vehicle getVehicle() {
-        return vehicle;
-    }
+    public String getDriverId() { return driverId; }
+    public void setDriverId(String driverId) { this.driverId = driverId; }
 
-    public void setVehicle(Vehicle vehicle) {
-        this.vehicle = vehicle;
-    }
+    public String getVehicleRego() { return vehicleRego; }
+    public void setVehicleRego(String vehicleRego) { this.vehicleRego = vehicleRego; }
 
-    public String getDriverName() {
-        return driverName;
-    }
+    public String getSecurityCode() { return securityCode; }
+    public void setSecurityCode(String securityCode) { this.securityCode = securityCode; }
 
-    public void setDriverName(String driverName) {
-        this.driverName = driverName;
-    }
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
 
-    public String getDriverId() {
-        return driverId;
-    }
+    public String getEndTime() { return endTime; }
+    public void setEndTime(String endTime) { this.endTime = endTime; }
 
-    public void setDriverId(String driverId) {
-        this.driverId = driverId;
-    }
+    public String getNatureOfWork() { return natureOfWork; }
+    public void setNatureOfWork(String natureOfWork) { this.natureOfWork = natureOfWork; }
 
-    public String getVehicleRego() {
-        return vehicleRego;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setVehicleRego(String vehicleRego) {
-        this.vehicleRego = vehicleRego;
-    }
+    public String getSignatureData() { return signatureData; }
+    public void setSignatureData(String signatureData) { this.signatureData = signatureData; }
 
-    public String getSecurityCode() {
-        return securityCode;
-    }
-
-    public void setSecurityCode(String securityCode) {
-        this.securityCode = securityCode;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getNatureOfWork() {
-        return natureOfWork;
-    }
-
-    public void setNatureOfWork(String natureOfWork) {
-        this.natureOfWork = natureOfWork;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getSignatureData() {
-        return signatureData;
-    }
-
-    public void setSignatureData(String signatureData) {
-        this.signatureData = signatureData;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

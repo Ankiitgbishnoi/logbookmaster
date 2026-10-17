@@ -1,18 +1,17 @@
 package com.logbookmaster;
 
+import com.logbookmaster.model.LogbookEntry;
 import com.logbookmaster.model.User;
 import com.logbookmaster.model.Vehicle;
-import com.logbookmaster.model.LogbookEntry;
 import com.logbookmaster.repository.LogbookEntryRepository;
 import com.logbookmaster.repository.UserRepository;
 import com.logbookmaster.repository.VehicleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Configuration
 public class DataSeeder {
@@ -20,13 +19,14 @@ public class DataSeeder {
     @Bean
     CommandLineRunner seed(UserRepository userRepository,
                            VehicleRepository vehicleRepository,
-                           LogbookEntryRepository logbookEntryRepository) {
+                           LogbookEntryRepository logbookEntryRepository,
+                           PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() == 0) {
                 User demo = new User();
                 demo.setName("Demo Driver");
                 demo.setEmail("demo@logbookmaster.com");
-                demo.setPassword(new BCryptPasswordEncoder().encode("password123"));
+                demo.setPassword(passwordEncoder.encode("password123"));
                 demo.setCreatedAt(LocalDateTime.now());
                 demo = userRepository.save(demo);
 
@@ -50,8 +50,7 @@ public class DataSeeder {
                 entry.setEndTime("09:00");
                 entry.setNatureOfWork("Driving — delivery run");
                 entry.setDescription("Regional freight movement and daily delivery run.");
-                entry.setSignatureData(""
-                );
+                entry.setSignatureData("");
                 entry.setCreatedAt(LocalDateTime.now());
                 logbookEntryRepository.save(entry);
             }

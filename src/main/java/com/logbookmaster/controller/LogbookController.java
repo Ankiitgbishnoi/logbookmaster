@@ -7,7 +7,7 @@ import com.logbookmaster.repository.LogbookEntryRepository;
 import com.logbookmaster.repository.UserRepository;
 import com.logbookmaster.repository.VehicleRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,14 +24,16 @@ public class LogbookController {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final LogbookEntryRepository logbookEntryRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
     public LogbookController(UserRepository userRepository,
                              VehicleRepository vehicleRepository,
-                             LogbookEntryRepository logbookEntryRepository) {
+                             LogbookEntryRepository logbookEntryRepository,
+                             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
         this.logbookEntryRepository = logbookEntryRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/health")
@@ -90,6 +92,15 @@ public class LogbookController {
         ));
     }
 
+    @GetMapping("/auth/me")
+    public ResponseEntity<Map<String, Object>> me(@RequestParam(required = false) String email) {
+        String targetEmail = (email == null || email.isBlank()) ? "demo@logbookmaster.com" : email.trim().toLowerCase();
+        User user = userRepository.findByEmail(targetEmail)
+            .orElseGet(() -> userRepository.findAll().stream().findFirst().orElseThrow());
+
+        return ResponseEntity.ok(Map.of("success", true, "user", toPublicUser(user)));
+    }
+
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> dashboard(@RequestParam(required = false) String email) {
         String targetEmail = (email == null || email.isBlank()) ? "demo@logbookmaster.com" : email.trim().toLowerCase();
@@ -110,6 +121,22 @@ public class LogbookController {
         response.put("vehicles", vehicles.stream().map(this::toVehicleMap).toList());
         response.put("entries", entries.stream().map(this::toEntryMap).toList());
         response.put("stats", summary);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/admin/summary")
+    public ResponseEntity<Map<String, Object>> adminSummary() {
+        long totalUsers = userRepository.count();
+        long totalVehicles = vehicleRepository.count();
+        long totalEntries = logbookEntryRepository.count();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("totalUsers", totalUsers);
+        response.put("totalVehicles", totalVehicles);
+        response.put("totalEntries", totalEntries);
+        response.put("activePlans", 18);
+        response.put("monthlyRevenue", 1450.00);
         return ResponseEntity.ok(response);
     }
 

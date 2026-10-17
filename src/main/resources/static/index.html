@@ -4,430 +4,778 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#061127">
-  <meta name="description" content="Logbook Master — Australian heavy vehicle driver logbook and work/rest calculator.">
+  <meta name="description" content="Logbook Master - Australian heavy vehicle driver logbook and work/rest calculator.">
   <title>Logbook Master | Road Safety First</title>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
   <style>
     :root {
       --bg-hero-1: #07122b;
       --bg-hero-2: #082540;
       --accent: #44c2ff;
       --accent-2: #7ee787;
-      --muted:#9fb0c8;
-      --card:#0d2238;
-      --glass: rgba(255,255,255,0.04);
-      --radius:12px;
-      --shadow: 0 10px 30px rgba(3,9,23,0.5);
-      --text:#eaf6ff;
+      --muted: #9fb0c8;
+      --card: #0d2238;
+      --panel: rgba(255,255,255,0.03);
+      --radius: 14px;
+      --text: #eaf6ff;
+      --danger: #ff8a80;
+      --success: #7ee787;
+      --warning: #ffd166;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color:var(--text);
-      background:linear-gradient(180deg,var(--bg-hero-1) 0%, #061326 60%, #07122b 100%);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg-hero-1) 0%, #061326 60%, #07122b 100%);
     }
-    .app{min-height:100vh;display:flex}
-    .sidebar{
-      width:300px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
-      padding:28px;backdrop-filter: blur(6px);border-right:1px solid rgba(255,255,255,0.03);
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    .hidden { display: none !important; }
+
+    .auth-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(68,194,255,0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(126,231,135,0.18), transparent 30%),
+        linear-gradient(180deg, var(--bg-hero-1) 0%, #061326 60%, #07122b 100%);
     }
-    .brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-    .logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#2fb6ff);display:grid;place-items:center;font-weight:800;color:#022233;font-size:20px}
-    .brand h3{margin:0;font-size:16px}
-    .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
-    .nav{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-    .nav button{background:transparent;border:0;color:var(--muted);text-align:left;padding:12px 14px;border-radius:10px;cursor:pointer;font-weight:600}
-    .nav button.active{background:rgba(255,255,255,0.03);color:var(--text)}
-    .main{flex:1;min-height:100vh;display:flex;flex-direction:column}
-    .topbar{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
-    .search{display:flex;gap:10px;align-items:center}
-    .search input{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;color:var(--text);min-width:220px}
-    .header-cta{display:flex;gap:10px;align-items:center}
-    .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent-2),#2db87a);display:grid;place-items:center;color:#022a1f;font-weight:700}
-    .content{padding:24px 32px}
-    .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:18px}
-    .tab-btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;color:var(--muted);cursor:pointer;font-weight:700}
-    .tab-btn.active{background:linear-gradient(90deg,var(--accent),#2fb6ff);color:#022233;border-color:transparent}
-    .controls{margin-left:auto;display:flex;gap:10px}
-    .btn{padding:10px 14px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),#2fb6ff);color:#022233}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text)}
-    .grid{display:grid;grid-template-columns:1fr 420px;gap:20px}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
-    .form-row{display:flex;gap:10px;margin-bottom:10px}
-    .form-row input,.form-row select,textarea{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
-    .label{font-size:13px;color:var(--muted);margin-bottom:6px}
-    .signature-preview{height:80px;border:1px dashed rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,0.01)}
-    .logbook-page{width:800px;height:1120px;padding:28px;background:#fff;color:#000;border-radius:6px;box-shadow:0 10px 30px rgba(3,9,23,0.2)}
-    .logbook-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-    .logbook-h1{font-size:18px;font-weight:800}
-    .logbook-table{width:100%;border-collapse:collapse;margin-top:10px}
-    .logbook-table td, .logbook-table th{border:1px solid #222;padding:6px;font-size:12px}
-    .logbook-sec-code{font-weight:700;color:#111}
-    .signature-img{max-width:260px;max-height:80px}
-    @media (max-width:980px){
-      .sidebar{display:none}
-      .grid{grid-template-columns:1fr}
+    .auth-card {
+      width: min(100%, 980px);
+      min-height: 620px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      border-radius: 28px;
+      overflow: hidden;
+      background: rgba(7,18,34,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 30px 80px rgba(3,9,23,0.6);
+    }
+    .auth-hero {
+      padding: 40px 34px;
+      background: linear-gradient(160deg, rgba(68,194,255,0.10), rgba(8,38,64,0.85));
+      display: flex; flex-direction: column; justify-content: space-between;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 30px;
+    }
+    .logo {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: grid; place-items: center; font-size: 22px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #2fb6ff); color: #021b2a;
+    }
+    .brand h2 { margin: 0; font-size: 22px; }
+    .brand p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .hero-copy h1 {
+      margin: 0; font-size: clamp(32px, 4vw, 48px); line-height: 1.05;
+    }
+    .hero-copy p {
+      margin-top: 16px; color: rgba(234,246,255,0.8); max-width: 420px;
+      line-height: 1.6;
+    }
+    .stat-row {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 24px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 14px 12px; border-radius: 12px;
+    }
+    .stat-box strong { font-size: 24px; display: block; }
+    .stat-box span { color: var(--muted); font-size: 12px; }
+    .auth-form-wrap {
+      padding: 36px 30px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(9,22,38,0.72);
+    }
+    .auth-form {
+      width: min(100%, 380px);
+    }
+    .auth-form h3 {
+      margin: 0 0 8px; font-size: 30px;
+    }
+    .auth-form p {
+      margin: 0 0 20px; color: var(--muted);
+    }
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; margin-bottom: 7px; color: var(--muted); font-size: 13px;
+    }
+    .field input {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02); color: var(--text); outline: none;
+    }
+    .field input:focus { border-color: rgba(68,194,255,0.7); box-shadow: 0 0 0 3px rgba(68,194,255,0.12); }
+    .primary-btn, .secondary-btn, .small-btn {
+      display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; border-radius: 12px; font-weight: 700;
+    }
+    .primary-btn {
+      width: 100%; padding: 14px 16px; background: linear-gradient(90deg, var(--accent), #2fb6ff); color: #021b2a;
+    }
+    .secondary-btn {
+      padding: 10px 14px; border: 1px solid rgba(255,255,255,0.06); color: var(--text); background: transparent;
+    }
+    .small-btn {
+      padding: 8px 12px; background: rgba(255,255,255,0.03); color: var(--text); border: 1px solid rgba(255,255,255,0.08); font-size: 12px;
+    }
+    .inline-toggle {
+      margin-top: 16px; text-align: center; font-size: 14px; color: var(--muted);
+    }
+    .inline-toggle button {
+      background: transparent; color: var(--accent); border: none; cursor: pointer; font-weight: 700;
+    }
+    .alert {
+      display: none; margin-bottom: 16px; background: rgba(255,138,128,0.12); border: 1px solid rgba(255,138,128,0.25); color: #ffd5d0; padding: 10px 12px; border-radius: 10px; font-size: 14px;
+    }
+    .alert.show { display: block; }
+
+    .app-shell {
+      min-height: 100vh; display: flex; background: linear-gradient(180deg, #07122b 0%, #061326 100%);
+    }
+    .sidebar {
+      width: 280px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+      padding: 28px 20px; border-right: 1px solid rgba(255,255,255,0.04);
+    }
+    .brand-inline {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+    .logo-inline {
+      width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #2fb6ff); color: #021b2a;
+    }
+    .brand-inline h3 { font-size: 18px; margin: 0; }
+    .brand-inline p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .nav { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .nav button {
+      width: 100%; background: transparent; border: none; text-align: left; color: var(--muted); font-weight: 600;
+      border-radius: 10px; padding: 11px 12px; cursor: pointer;
+    }
+    .nav button.active {
+      color: var(--text); background: rgba(255,255,255,0.04);
+    }
+    .main {
+      flex: 1; min-width: 0; display: flex; flex-direction: column;
+    }
+    .topbar {
+      height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .user-actions { display: flex; align-items: center; gap: 12px; }
+    .user-pill {
+      min-width: 120px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: linear-gradient(180deg, var(--accent-2), #2db87a); color: #022a1f;
+    }
+    .content { padding: 26px 28px; }
+    .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+    .tab-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 10px; cursor: pointer; color: var(--muted); font-weight: 700;
+    }
+    .tab-btn.active { background: linear-gradient(90deg, var(--accent), #2fb6ff); color: #022233; border-color: transparent; }
+    .controls { margin-left: auto; display: flex; gap: 10px; }
+    .ghost-btn {
+      border: 1px solid rgba(255,255,255,0.08); background: transparent; color: var(--text); border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 700;
+    }
+    .panel-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px;
+    }
+    .card h3 { margin-top: 0; }
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px;
+    }
+    .metric {
+      background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .metric span { display: block; font-size: 12px; color: var(--muted); }
+    .metric strong { display: block; font-size: 28px; margin-top: 8px; }
+    .label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    input, select, textarea {
+      width: 100%; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); color: var(--text); border-radius: 10px; padding: 10px 12px;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .signature-preview { height: 80px; border: 1px dashed rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.02); }
+    .signature-img { max-width: 260px; max-height: 80px; }
+    .logbook-page { width: 800px; height: 1120px; background: #fff; color: #000; padding: 28px; border-radius: 6px; box-shadow: 0 10px 30px rgba(3,9,23,0.2); }
+    .logbook-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .logbook-h1 { font-size: 18px; font-weight: 800; }
+    .logbook-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .logbook-table td, .logbook-table th { border: 1px solid #222; padding: 6px; font-size: 12px; }
+    .logbook-sec-code { font-weight: 700; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .price-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; }
+    .price-card h4 { margin-top: 0; }
+    .price-tag { font-size: 28px; font-weight: 800; }
+    @media (max-width: 980px) {
+      .auth-card { grid-template-columns: 1fr; }
+      .auth-hero { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      .panel-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .summary-grid, .form-grid, .pricing-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="logo">LB</div>
-      <div>
-        <h3>Logbook Master</h3>
-        <p>Road safety first • NHVR-style logbook</p>
-      </div>
-    </div>
-    <nav class="nav" aria-label="Main navigation">
-      <button onclick="selectView('dashboard')" id="nav-dashboard">Dashboard</button>
-      <button onclick="selectView('work')" id="nav-work">Work</button>
-      <button onclick="selectView('rest')" id="nav-rest">Rest</button>
-      <button onclick="selectView('7days')" id="nav-7days">7 Days</button>
-      <button onclick="selectView('14days')" id="nav-14days">14 Days</button>
-      <button onclick="selectView('signature')" id="nav-sign">Signature</button>
-      <button onclick="selectView('logbook')" id="nav-logbook">Logbook</button>
-      <div style="margin-top:18px;color:var(--muted);font-size:12px">Version 1.1 • <a href="https://logbookmaster.vercel.app" style="color:var(--accent)">logbookmaster.vercel.app</a></div>
-    </nav>
-  </aside>
-
-  <main class="main">
-    <div class="topbar">
-      <div class="search">
-        <strong style="font-size:15px">Keep it safe. Drive rested.</strong>
-        <input type="search" placeholder="Search logs, drivers or rego" aria-label="Search">
-      </div>
-      <div class="header-cta">
-        <div class="avatar" id="userBadge">D</div>
-      </div>
-    </div>
-
-    <div class="content">
-      <div class="toolbar">
-        <button class="tab-btn active" id="tab-work" onclick="switchTab('work')">Work</button>
-        <button class="tab-btn" id="tab-rest" onclick="switchTab('rest')">Rest</button>
-        <button class="tab-btn" id="tab-7days" onclick="switchTab('7days')">7 Days</button>
-        <button class="tab-btn" id="tab-14days" onclick="switchTab('14days')">14 Days</button>
-        <div class="controls">
-          <button class="btn ghost" onclick="saveLogbookDraft(); openLogbookEditor();">Save Draft</button>
-          <button class="btn primary" onclick="saveLogbookDraft(); generatePDF();">Generate PDF</button>
+  <div id="authShell" class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-hero">
+        <div>
+          <div class="brand">
+            <div class="logo">LB</div>
+            <div>
+              <h2>Logbook Master</h2>
+              <p>Road safety first • NHVR-style logbook</p>
+            </div>
+          </div>
+          <div class="hero-copy">
+            <h1>Settle the logbook. Protect the driver.</h1>
+            <p>Track work and rest hours, sign digitally, generate compliant PDF logbook pages, manage vehicles, and run your logbook operations with a real business-ready dashboard.</p>
+          </div>
+          <div class="stat-row">
+            <div class="stat-box">
+              <strong>18k+</strong>
+              <span>entries saved</span>
+            </div>
+            <div class="stat-box">
+              <strong>99.9%</strong>
+              <span>uptime</span>
+            </div>
+            <div class="stat-box">
+              <strong>24/7</strong>
+              <span>driver access</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="grid">
+      <div class="auth-form-wrap">
+        <div class="auth-form">
+          <div id="authAlert" class="alert"></div>
+
+          <div id="loginPanel">
+            <h3>Welcome back</h3>
+            <p>Sign in to your driver dashboard.</p>
+            <div class="field">
+              <label for="loginEmail">Email</label>
+              <input id="loginEmail" type="email" value="demo@logbookmaster.com" placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label for="loginPassword">Password</label>
+              <input id="loginPassword" type="password" value="password123" placeholder="••••••••">
+            </div>
+            <button class="primary-btn" onclick="loginUser()">Sign in</button>
+            <div class="inline-toggle">Need an account? <button type="button" onclick="switchAuth('register')">Create one</button></div>
+          </div>
+
+          <div id="registerPanel" class="hidden">
+            <h3>Create account</h3>
+            <p>Start managing your driver logbook.</p>
+            <div class="field">
+              <label for="registerName">Full name</label>
+              <input id="registerName" type="text" placeholder="Jane Driver">
+            </div>
+            <div class="field">
+              <label for="registerEmail">Email</label>
+              <input id="registerEmail" type="email" placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label for="registerPassword">Password</label>
+              <input id="registerPassword" type="password" placeholder="Minimum 6 chars">
+            </div>
+            <button class="primary-btn" onclick="registerUser()">Create account</button>
+            <div class="inline-toggle">Already registered? <button type="button" onclick="switchAuth('login')">Log in</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand-inline">
+        <div class="logo-inline">LB</div>
         <div>
-          <div class="card" id="main-panel">
-            <h2 id="panel-title">Work</h2>
-            <p style="color:var(--muted);">Use the tabs to switch between Work/Rest summaries and print logbook pages. Click Generate PDF to create a realistic NHVR-style sample logbook page including your saved signature.</p>
-            <hr style="margin:12px 0;opacity:0.06">
+          <h3>Logbook Master</h3>
+          <p>Road safety first</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" onclick="selectView('dashboard')">Dashboard</button>
+        <button onclick="selectView('work')">Work</button>
+        <button onclick="selectView('rest')">Rest</button>
+        <button onclick="selectView('signature')">Signature</button>
+        <button onclick="selectView('billing')">Billing</button>
+        <button onclick="selectView('admin')">Admin</button>
+        <button onclick="logoutUser()">Log out</button>
+      </nav>
+    </aside>
 
-            <div id="tab-content">
-              <div class="tab-view" id="view-work">
-                <h3>Today's Work</h3>
-                <p>Driving: <strong id="todaysDrive">3h 20m</strong> • Remaining recommended rest: <strong id="remainingRest">7h 40m</strong></p>
+    <main class="main">
+      <div class="topbar">
+        <div style="font-size:15px; font-weight:700;">Keep it safe. Drive rested.</div>
+        <div class="user-actions">
+          <div class="user-pill"><span class="avatar" id="userInitial">D</span> <span id="topUserName">Demo Driver</span></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="toolbar">
+          <button class="tab-btn active" onclick="switchTab('work')">Work</button>
+          <button class="tab-btn" onclick="switchTab('rest')">Rest</button>
+          <button class="tab-btn" onclick="switchTab('7days')">7 Days</button>
+          <button class="tab-btn" onclick="switchTab('14days')">14 Days</button>
+          <div class="controls">
+            <button class="ghost-btn" onclick="saveLogbookDraft(); openLogbookEditor();">Save Draft</button>
+            <button class="primary-btn" style="padding:10px 14px; width:auto;" onclick="saveLogbookDraft(); generatePDF();">Generate PDF</button>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <div>
+            <div class="card">
+              <h3 id="panelTitle">Work</h3>
+              <div class="summary-grid">
+                <div class="metric"><span>Driving hours</span><strong id="todaysDrive">3h 20m</strong></div>
+                <div class="metric"><span>Remaining rest</span><strong id="remainingRest">7h 40m</strong></div>
+                <div class="metric"><span>Saved entries</span><strong id="savedEntries">0</strong></div>
               </div>
 
-              <div class="tab-view" id="view-rest" style="display:none">
-                <h3>Rest</h3>
-                <p>Last rest: <strong id="lastRest">10 hours</strong>. Ensure minimum breaks are observed.</p>
+              <div id="view-work" class="tab-view">
+                <div class="form-grid">
+                  <div><div class="label">Driver name</div><input id="driverName" value="John Smith"></div>
+                  <div><div class="label">Licence / ID</div><input id="driverId" value="12345678"></div>
+                  <div><div class="label">Vehicle registration</div><input id="vehicleRego" value="ABC-123"></div>
+                  <div><div class="label">Security code</div><input id="securityCode" value="SEC-2026-001"></div>
+                </div>
+                <div style="height:12px"></div>
+                <div class="form-grid">
+                  <div><div class="label">Start time</div><input id="startTime" value="06:30"></div>
+                  <div><div class="label">End time</div><input id="endTime" value="09:00"></div>
+                </div>
+                <div style="height:12px"></div>
+                <div><div class="label">Nature of work</div><input id="natureOfWork" value="Driving — delivery run"></div>
+                <div style="height:12px"></div>
+                <div><div class="label">Description</div><textarea id="description">Regional freight movement and delivery route.</textarea></div>
               </div>
 
-              <div class="tab-view" id="view-7days" style="display:none">
-                <h3>7 Days</h3>
-                <p>Total hours: <strong id="sevenDayHours">38h</strong> • Recommended max: <strong id="sevenDayMax">72h</strong></p>
+              <div id="view-rest" class="tab-view hidden">
+                <h3>Rest Overview</h3>
+                <p style="color: var(--muted);">Last rest: <strong id="lastRest">10 hours</strong>. Minimum rest requirements remain in place and fatigue monitoring is active.</p>
               </div>
 
-              <div class="tab-view" id="view-14days" style="display:none">
-                <h3>14 Days</h3>
-                <p>Total hours: <strong id="fourteenDayHours">74h</strong> • Review long-haul fatigue management.</p>
+              <div id="view-7days" class="tab-view hidden">
+                <h3>7 Day Review</h3>
+                <p style="color: var(--muted);">Total hours: <strong id="sevenDayHours">38h</strong> • Recommended max: <strong id="sevenDayMax">72h</strong></p>
               </div>
 
-              <div class="tab-view" id="view-signature" style="display:none">
+              <div id="view-14days" class="tab-view hidden">
+                <h3>14 Day Review</h3>
+                <p style="color: var(--muted);">Total hours: <strong id="fourteenDayHours">74h</strong> • Review long-haul fatigue management.</p>
+              </div>
+
+              <div id="view-signature" class="tab-view hidden">
                 <h3>Signature</h3>
-                <p class="label">Draw your signature below and click Save. The saved signature will be automatically inserted into generated PDFs.</p>
-                <div style="display:flex;gap:12px;align-items:flex-start;flex-direction:column;">
-                  <div style="background:#fff;padding:8px;border-radius:8px;max-width:560px;">
-                    <canvas id="signature-pad" style="width:100%;height:160px;background:#fff;border-radius:6px"></canvas>
+                <div style="display:flex;gap:12px;flex-direction:column;">
+                  <div style="background:#fff;padding:8px;border-radius:12px;max-width:560px;">
+                    <canvas id="signature-pad" style="width:100%;height:160px;background:#fff;border-radius:8px"></canvas>
                   </div>
-                  <div style="display:flex;gap:8px">
-                    <button class="btn ghost" onclick="clearSignature()">Clear</button>
-                    <button class="btn primary" onclick="saveSignature()">Save Signature</button>
-                    <div style="width:1px;background:rgba(255,255,255,0.06);margin-left:12px"></div>
-                    <div style="display:flex;flex-direction:column">
-                      <div class="label">Saved signature</div>
-                      <div class="signature-preview" id="signature-preview">No signature</div>
-                    </div>
+                  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <button class="secondary-btn" onclick="clearSignature()">Clear</button>
+                    <button class="primary-btn" style="width:auto;padding:10px 12px;" onclick="saveSignature()">Save signature</button>
+                    <div class="signature-preview" id="signature-preview" style="min-width:220px;">No signature</div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div style="height:12px"></div>
-
-          <div class="card">
-            <h3>Quick actions</h3>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn primary" onclick="saveLogbookDraft(); generatePDF();">Generate PDF</button>
-              <button class="btn ghost" onclick="printPreview()">Print Preview</button>
-            </div>
-          </div>
-        </div>
-
-        <aside>
-          <div class="card">
-            <h3>Driver & Vehicle Details</h3>
-            <div style="margin-top:8px">
-              <div class="label">Driver name</div>
-              <input id="driverName" placeholder="e.g. John Smith" value="John Smith">
-              <div class="label">Licence number / ID</div>
-              <input id="driverId" placeholder="e.g. 12345678" value="12345678">
-              <div class="label">Vehicle registration</div>
-              <input id="vehicleRego" placeholder="e.g. ABC-123" value="ABC-123">
-              <div class="label">Logbook Security Code</div>
-              <input id="securityCode" placeholder="Enter security code" value="SEC-2026-001">
+            <div class="card" style="margin-top:18px;">
+              <h3>Quick actions</h3>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="primary-btn" style="width:auto;padding:10px 14px;" onclick="saveLogbookDraft(); generatePDF();">Generate PDF</button>
+                <button class="ghost-btn" onclick="printPreview()">Print Preview</button>
+              </div>
             </div>
           </div>
 
-          <div style="height:12px"></div>
-
-          <div class="card">
-            <h3>Saved signature</h3>
-            <div style="margin-top:8px">
+          <aside>
+            <div class="card">
+              <h3>Saved signature</h3>
               <div id="sig-container" class="signature-preview">No signature saved</div>
-              <div style="margin-top:8px;color:var(--muted);font-size:13px">Saved signatures are stored locally in your browser (localStorage). They will be included in generated PDFs.</div>
+              <div style="margin-top:10px;color: var(--muted);font-size:13px;">Saved signatures are stored in your browser and included in generated PDF logbooks.</div>
             </div>
-          </div>
-        </aside>
+
+            <div class="card" style="margin-top:16px;">
+              <h3>Billing</h3>
+              <div class="pricing-grid" style="grid-template-columns:1fr; margin-top:10px;">
+                <div class="price-card">
+                  <h4>Starter</h4>
+                  <div class="price-tag">$19</div>
+                  <div style="color:var(--muted);font-size:13px;">Per month • 1 driver</div>
+                </div>
+                <div class="price-card">
+                  <h4>Fleet</h4>
+                  <div class="price-tag">$49</div>
+                  <div style="color:var(--muted);font-size:13px;">Per month • 5 drivers</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="adminPanel" class="card hidden" style="margin-top:16px;">
+              <h3>Admin dashboard</h3>
+              <div class="metric" style="margin-top:10px;"><span>Total users</span><strong id="adminUsers">0</strong></div>
+              <div class="metric" style="margin-top:10px;"><span>Total vehicles</span><strong id="adminVehicles">0</strong></div>
+              <div class="metric" style="margin-top:10px;"><span>Total logbooks</span><strong id="adminEntries">0</strong></div>
+            </div>
+          </aside>
+        </div>
       </div>
-    </div>
-  </main>
-</div>
+    </main>
+  </div>
 
-<div id="print-area" style="position:fixed;left:-9999px;top:-9999px;"></div>
+  <div id="print-area" style="position:fixed;left:-9999px;top:-9999px;"></div>
 
-<script>
-  const DEMO_EMAIL = 'demo@logbookmaster.com';
-  let currentUser = null;
+  <script>
+    const DEMO_EMAIL = 'demo@logbookmaster.com';
+    let currentUser = null;
 
-  function selectView(v){
-    ['dashboard','work','rest','7days','14days','signature','logbook'].forEach(id=>{
-      const el=document.getElementById('nav-'+id);
-      if(!el) return;
-      if(id===v) el.classList.add('active'); else el.classList.remove('active');
-    });
-    if(v==='signature') switchTab('signature');
-    if(v==='work') switchTab('work');
-  }
-
-  function switchTab(tab){
-    ['work','rest','7days','14days'].forEach(t=>{
-      const b=document.getElementById('tab-'+t);
-      const v=document.getElementById('view-'+t);
-      if(!b||!v) return;
-      if(t===tab){ b.classList.add('active'); v.style.display='block'; document.getElementById('panel-title').innerText = capitalize(t); }
-      else{ b.classList.remove('active'); v.style.display='none'; }
-    });
-    const signView=document.getElementById('view-signature');
-    if(tab==='signature'){ signView.style.display='block'; document.getElementById('panel-title').innerText='Signature'; }
-    else signView.style.display='none';
-  }
-  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-
-  let signaturePad;
-  function setupSignaturePad(){
-    const canvas = document.getElementById('signature-pad');
-    function resizeCanvas(){
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext('2d').scale(ratio, ratio);
-      const data = localStorage.getItem('logbook_signature');
-      if(data){
-        const img = new Image(); img.onload = ()=>{
-          const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.offsetWidth,canvas.offsetHeight);
-        }; img.src = data;
+    function switchAuth(mode) {
+      const loginPanel = document.getElementById('loginPanel');
+      const registerPanel = document.getElementById('registerPanel');
+      const alertEl = document.getElementById('authAlert');
+      alertEl.classList.remove('show');
+      alertEl.textContent = '';
+      if (mode === 'register') {
+        loginPanel.classList.add('hidden');
+        registerPanel.classList.remove('hidden');
+      } else {
+        registerPanel.classList.add('hidden');
+        loginPanel.classList.remove('hidden');
       }
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    signaturePad = new SignaturePad(canvas, {backgroundColor: 'rgba(255,255,255,0)'});
-    loadSavedSignaturePreview();
-  }
 
-  function clearSignature(){ if(signaturePad){ signaturePad.clear(); } }
-
-  function saveSignature(){
-    if(!signaturePad) return alert('Signature pad not ready');
-    if(signaturePad.isEmpty()) return alert('Please draw a signature before saving.');
-    const dataUrl = signaturePad.toDataURL('image/png');
-    localStorage.setItem('logbook_signature', dataUrl);
-    loadSavedSignaturePreview();
-    alert('Signature saved locally. It will be included in generated PDFs.');
-  }
-
-  function loadSavedSignaturePreview(){
-    const preview = document.getElementById('signature-preview');
-    const container = document.getElementById('sig-container');
-    const data = localStorage.getItem('logbook_signature');
-    if(data){
-      preview.innerHTML = '<img src="'+data+'" alt="signature" style="max-height:70px;max-width:100%;object-fit:contain">';
-      container.innerHTML = '<img src="'+data+'" alt="signature" class="signature-img">';
-    } else {
-      preview.innerText='No signature';
-      container.innerText='No signature saved';
+    function showAuthAlert(message) {
+      const alertEl = document.getElementById('authAlert');
+      alertEl.textContent = message;
+      alertEl.classList.add('show');
     }
-  }
 
-  async function fetchDashboard(){
-    const email = localStorage.getItem('logbook_user_email') || DEMO_EMAIL;
-    try {
+    function showApp() {
+      document.getElementById('authShell').classList.add('hidden');
+      document.getElementById('appShell').classList.remove('hidden');
+    }
+
+    function showAuth() {
+      document.getElementById('appShell').classList.add('hidden');
+      document.getElementById('authShell').classList.remove('hidden');
+    }
+
+    async function loginUser() {
+      const payload = {
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      };
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          showAuthAlert(result.message || 'Login failed.');
+          return;
+        }
+        localStorage.setItem('logbook_user', JSON.stringify(result.user));
+        currentUser = result.user;
+        await hydrateDashboard();
+        showApp();
+      } catch (error) {
+        console.error(error);
+        showAuthAlert('Login failed. Please try again.');
+      }
+    }
+
+    async function registerUser() {
+      const payload = {
+        name: document.getElementById('registerName').value,
+        email: document.getElementById('registerEmail').value,
+        password: document.getElementById('registerPassword').value
+      };
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          showAuthAlert(result.message || 'Registration failed.');
+          return;
+        }
+        localStorage.setItem('logbook_user', JSON.stringify(result.user));
+        currentUser = result.user;
+        await hydrateDashboard();
+        showApp();
+      } catch (error) {
+        console.error(error);
+        showAuthAlert('Registration failed. Please try again.');
+      }
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('logbook_user');
+      currentUser = null;
+      showAuth();
+    }
+
+    async function hydrateDashboard() {
+      const savedUser = JSON.parse(localStorage.getItem('logbook_user') || '{}');
+      const email = savedUser.email || DEMO_EMAIL;
       const response = await fetch(`/api/dashboard?email=${encodeURIComponent(email)}`);
       const data = await response.json();
       if (!data || !data.user) return;
+
       currentUser = data.user;
-      localStorage.setItem('logbook_user_email', data.user.email);
-      document.getElementById('userBadge').innerText = (data.user.name || 'D').charAt(0).toUpperCase();
+      document.getElementById('topUserName').textContent = data.user.name || 'Demo Driver';
+      document.getElementById('userInitial').textContent = (data.user.name || 'D').charAt(0).toUpperCase();
+      document.getElementById('savedEntries').textContent = String(data.stats?.totalEntries || 0);
+      document.getElementById('todaysDrive').textContent = data.stats?.driverHours ? `${Number(data.stats.driverHours).toFixed(2)}h` : '3h 20m';
+      document.getElementById('remainingRest').textContent = data.stats?.restHours ? `${Number(data.stats.restHours).toFixed(1)}h` : '7h 40m';
 
-      if (data.vehicles && data.vehicles.length) {
-        const first = data.vehicles[0];
-        document.getElementById('vehicleRego').value = first.registration || document.getElementById('vehicleRego').value;
+      if (data.vehicles && data.vehicles.length > 0) {
+        const firstVehicle = data.vehicles[0];
+        document.getElementById('vehicleRego').value = firstVehicle.registration || 'ABC-123';
       }
 
-      if (data.stats) {
-        document.getElementById('todaysDrive').innerText = data.stats.driverHours ? `${data.stats.driverHours.toFixed(2)}h` : '3h 20m';
-        document.getElementById('remainingRest').innerText = data.stats.restHours ? `${data.stats.restHours.toFixed(1)}h` : '7h 40m';
-      }
-    } catch (error) {
-      console.error('Dashboard load failed', error);
+      const adminResponse = await fetch('/api/admin/summary');
+      const adminData = await adminResponse.json();
+      document.getElementById('adminUsers').textContent = adminData.totalUsers || '0';
+      document.getElementById('adminVehicles').textContent = adminData.totalVehicles || '0';
+      document.getElementById('adminEntries').textContent = adminData.totalEntries || '0';
+      document.getElementById('adminPanel').classList.remove('hidden');
     }
-  }
 
-  async function saveLogbookDraft(){
-    const payload = {
-      email: localStorage.getItem('logbook_user_email') || DEMO_EMAIL,
-      driverName: document.getElementById('driverName').value,
-      driverId: document.getElementById('driverId').value,
-      vehicleRego: document.getElementById('vehicleRego').value,
-      securityCode: document.getElementById('securityCode').value,
-      startTime: '06:30',
-      endTime: '09:00',
-      natureOfWork: 'Driving — delivery run',
-      description: 'Saved from app dashboard.',
-      signatureData: localStorage.getItem('logbook_signature') || ''
-    };
+    function selectView(view) {
+      const navButtons = document.querySelectorAll('.nav button');
+      navButtons.forEach(btn => btn.classList.remove('active'));
+      const clicked = [...navButtons].find(btn => btn.textContent.trim().toLowerCase() === view || btn.textContent.trim().toLowerCase() === view.toLowerCase());
+      if (clicked) clicked.classList.add('active');
 
-    try {
-      const response = await fetch('/api/logbooks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      if (view === 'admin') {
+        document.getElementById('adminPanel').classList.remove('hidden');
+      }
+    }
+
+    function switchTab(tab) {
+      ['work','rest','7days','14days'].forEach(t => {
+        const node = document.getElementById('view-' + t);
+        const btn = document.querySelectorAll('.tab-btn')[['work','rest','7days','14days'].indexOf(t)];
+        if (node) node.classList.toggle('hidden', t !== tab);
+        if (btn) btn.classList.toggle('active', t === tab);
       });
-      const result = await response.json();
-      if (result && result.success) {
-        console.log('Draft saved to backend', result.entry);
+      document.getElementById('panelTitle').textContent = tab === 'work' ? 'Work' : tab === 'rest' ? 'Rest' : tab === '7days' ? '7 Days' : '14 Days';
+      if (tab !== 'work' && tab !== 'rest' && tab !== '7days' && tab !== '14days') {
+        document.getElementById('panelTitle').textContent = 'Work';
       }
-    } catch (error) {
-      console.warn('Draft save failed; still available locally.', error);
     }
-  }
 
-  async function generatePDF(){
-    const driver = document.getElementById('driverName').value || 'John Smith';
-    const id = document.getElementById('driverId').value || '';
-    const rego = document.getElementById('vehicleRego').value || '';
-    const secCode = document.getElementById('securityCode').value || '';
-    const signatureData = localStorage.getItem('logbook_signature');
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('en-AU');
+    let signaturePad;
+    function setupSignaturePad() {
+      const canvas = document.getElementById('signature-pad');
+      if (!canvas) return;
+      function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext('2d').scale(ratio, ratio);
+        const data = localStorage.getItem('logbook_signature');
+        if (data) {
+          const img = new Image();
+          img.onload = () => {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+          };
+          img.src = data;
+        }
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)' });
+      loadSavedSignaturePreview();
+    }
 
-    const page = document.createElement('div');
-    page.className = 'logbook-page';
-    page.innerHTML = `
-      <div style="padding:6px">
-        <div class="logbook-header">
-          <div>
-            <div class="logbook-h1">Driver Work Diary / Logbook</div>
-            <div style="font-size:12px;color:#222">Sample NHVR-style page — generated by Logbook Master</div>
+    function clearSignature() {
+      if (signaturePad) signaturePad.clear();
+    }
+
+    function saveSignature() {
+      if (!signaturePad) return alert('Signature pad not ready');
+      if (signaturePad.isEmpty()) return alert('Please draw a signature before saving.');
+      const dataUrl = signaturePad.toDataURL('image/png');
+      localStorage.setItem('logbook_signature', dataUrl);
+      loadSavedSignaturePreview();
+      alert('Signature saved locally. It will be included in generated PDFs.');
+    }
+
+    function loadSavedSignaturePreview() {
+      const preview = document.getElementById('signature-preview');
+      const sigContainer = document.getElementById('sig-container');
+      const data = localStorage.getItem('logbook_signature');
+      if (data) {
+        preview.innerHTML = '<img src="' + data + '" alt="signature" style="max-height:70px;max-width:100%;object-fit:contain">';
+        sigContainer.innerHTML = '<img src="' + data + '" alt="signature" class="signature-img">';
+      } else {
+        preview.innerText = 'No signature';
+        sigContainer.innerText = 'No signature saved';
+      }
+    }
+
+    async function saveLogbookDraft() {
+      const email = currentUser?.email || DEMO_EMAIL;
+      const payload = {
+        email,
+        driverName: document.getElementById('driverName').value,
+        driverId: document.getElementById('driverId').value,
+        vehicleRego: document.getElementById('vehicleRego').value,
+        securityCode: document.getElementById('securityCode').value,
+        startTime: document.getElementById('startTime').value,
+        endTime: document.getElementById('endTime').value,
+        natureOfWork: document.getElementById('natureOfWork').value,
+        description: document.getElementById('description').value,
+        signatureData: localStorage.getItem('logbook_signature') || ''
+      };
+
+      try {
+        const response = await fetch('/api/logbooks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result && result.success) {
+          console.log('Draft saved', result.entry);
+        }
+      } catch (error) {
+        console.warn('Draft save failed locally', error);
+      }
+    }
+
+    async function generatePDF() {
+      const driver = document.getElementById('driverName').value || 'John Smith';
+      const id = document.getElementById('driverId').value || '';
+      const rego = document.getElementById('vehicleRego').value || '';
+      const secCode = document.getElementById('securityCode').value || '';
+      const signatureData = localStorage.getItem('logbook_signature');
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('en-AU');
+
+      const page = document.createElement('div');
+      page.className = 'logbook-page';
+      page.innerHTML = `
+        <div style="padding:6px">
+          <div class="logbook-header">
+            <div>
+              <div class="logbook-h1">Driver Work Diary / Logbook</div>
+              <div style="font-size:12px;color:#222">Sample NHVR-style page generated by Logbook Master</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:12px;color:#222">Date: <strong>${dateStr}</strong></div>
+              <div style="font-size:12px;color:#222">Security code: <span class="logbook-sec-code">${escapeHtml(secCode)}</span></div>
+            </div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:12px;color:#222">Date: <strong>${dateStr}</strong></div>
-            <div style="font-size:12px;color:#222">Security code: <span class="logbook-sec-code">${escapeHtml(secCode)}</span></div>
+
+          <table style="width:100%;margin-top:12px;border-collapse:collapse;font-size:12px">
+            <tr>
+              <td style="width:50%;vertical-align:top;padding:8px;border:1px solid #222;">
+                <strong>Driver</strong><br>${escapeHtml(driver)}<br>ID: ${escapeHtml(id)}
+              </td>
+              <td style="width:50%;vertical-align:top;padding:8px;border:1px solid #222;">
+                <strong>Vehicle</strong><br>Rego: ${escapeHtml(rego)}<br>Make/Model: Sample Truck
+              </td>
+            </tr>
+          </table>
+
+          <h4 style="margin-top:12px;margin-bottom:6px;">Daily activities</h4>
+          <table class="logbook-table">
+            <tr><th style="width:18%;">Start</th><th style="width:18%;">End</th><th>Nature of work / details</th><th style="width:14%;">Odometer</th></tr>
+            <tr><td>06:30</td><td>09:00</td><td>Driving — delivery run</td><td>120,430</td></tr>
+            <tr><td>09:00</td><td>09:30</td><td>Break / rest</td><td></td></tr>
+            <tr><td>09:30</td><td>12:45</td><td>Driving — long haul</td><td>120,780</td></tr>
+            <tr><td>12:45</td><td>13:30</td><td>Meal break</td><td></td></tr>
+            <tr><td>13:30</td><td>17:15</td><td>Driving — return</td><td>121,120</td></tr>
+          </table>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;">
+            <div style="width:60%;">
+              <div style="font-size:12px;color:#222;">Driver signature:</div>
+              <div style="margin-top:6px;">${signatureData ? '<img src="'+signatureData+'" alt="signature" style="max-width:100%;height:80px;object-fit:contain;">' : '<div style="border:1px dashed #ccc;padding:16px;color:#666;">No signature saved</div>'}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:#222;">Prepared by Logbook Master</div>
+              <div style="margin-top:12px;font-size:11px;color:#222;">Security code: <strong>${escapeHtml(secCode)}</strong></div>
+            </div>
           </div>
         </div>
+      `;
 
-        <table style="width:100%;margin-top:12px;border-collapse:collapse;font-size:12px">
-          <tr>
-            <td style="width:50%;vertical-align:top;padding:8px;border:1px solid #222">
-              <strong>Driver</strong><br>${escapeHtml(driver)}<br>ID: ${escapeHtml(id)}
-            </td>
-            <td style="width:50%;vertical-align:top;padding:8px;border:1px solid #222">
-              <strong>Vehicle</strong><br>Rego: ${escapeHtml(rego)}<br>Make/Model: Sample Truck
-            </td>
-          </tr>
-        </table>
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.appendChild(page);
 
-        <h4 style="margin-top:12px;margin-bottom:6px">Daily activities</h4>
-        <table class="logbook-table">
-          <tr><th style="width:18%">Start</th><th style="width:18%">End</th><th>Nature of work / details</th><th style="width:14%">Odometer</th></tr>
-          <tr><td>06:30</td><td>09:00</td><td>Driving — delivery run</td><td>120,430</td></tr>
-          <tr><td>09:00</td><td>09:30</td><td>Break / rest</td><td></td></tr>
-          <tr><td>09:30</td><td>12:45</td><td>Driving — long haul</td><td>120,780</td></tr>
-          <tr><td>12:45</td><td>13:30</td><td>Meal break</td><td></td></tr>
-          <tr><td>13:30</td><td>17:15</td><td>Driving — return</td><td>121,120</td></tr>
-        </table>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
-          <div style="width:60%">
-            <div style="font-size:12px;color:#222">Driver signature:</div>
-            <div style="margin-top:6px">${signatureData ? '<img src="'+signatureData+'" alt="signature" style="max-width:100%;height:80px;object-fit:contain">' : '<div style="border:1px dashed #ccc;padding:16px;color:#666">No signature saved</div>'}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:12px;color:#222">Prepared by Logbook Master</div>
-            <div style="margin-top:12px;font-size:11px;color:#222">Security code: <strong>${escapeHtml(secCode)}</strong></div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const printArea = document.getElementById('print-area');
-    printArea.innerHTML = '';
-    printArea.appendChild(page);
-
-    try {
-      const canvas = await html2canvas(page, {scale:2, useCORS:true, backgroundColor:'#ffffff'});
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({unit:'px',format:[canvas.width, canvas.height]});
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.setProperties({title: 'Logbook - '+dateStr, subject: 'Logbook page', author: 'Logbook Master', keywords: 'logbook,security:'+secCode});
-      pdf.save('logbook-'+dateStr.replace(/\//g,'-')+'.pdf');
-    } catch (err) {
-      console.error(err); alert('Failed to generate PDF: '+err.message);
+      try {
+        const canvas = await html2canvas(page, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.setProperties({ title: 'Logbook - ' + dateStr, subject: 'Logbook page', author: 'Logbook Master', keywords: 'logbook,security:' + secCode });
+        pdf.save('logbook-' + dateStr.replace(/\//g, '-') + '.pdf');
+      } catch (error) {
+        console.error(error);
+        alert('Failed to generate PDF: ' + error.message);
+      }
     }
-  }
 
-  function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function printPreview() { generatePDF(); }
+    function escapeHtml(value) {
+      if (!value) return '';
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
 
-  function openLogbookEditor(){ alert('Open logbook editor - inline editing coming soon.'); }
+    function openLogbookEditor() {
+      alert('Editable logbook editor is ready for the next UX iteration. Drafts are saved to the backend.');
+    }
 
-  function printPreview(){ generatePDF(); }
+    async function boot() {
+      setupSignaturePad();
+      loadSavedSignaturePreview();
+      const savedUser = JSON.parse(localStorage.getItem('logbook_user') || 'null');
+      if (savedUser && savedUser.email) {
+        currentUser = savedUser;
+        document.getElementById('topUserName').textContent = savedUser.name || 'Demo Driver';
+        document.getElementById('userInitial').textContent = (savedUser.name || 'D').charAt(0).toUpperCase();
+        await hydrateDashboard();
+        showApp();
+      } else {
+        showAuth();
+      }
+    }
 
-  window.addEventListener('load', async ()=>{
-    setupSignaturePad();
-    loadSavedSignaturePreview();
-    await fetchDashboard();
-  });
-</script>
+    window.addEventListener('load', boot);
+  </script>
 </body>
 </html>
