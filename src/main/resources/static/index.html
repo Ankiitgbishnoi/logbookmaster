@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#061127">
+  <meta name="description" content="Logbook Master — Australian heavy vehicle driver logbook and work/rest calculator.">
+  <title>Logbook Master | Road Safety First</title>
+
+  <!-- CDNs for PDF generation and signature -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg-hero-1: #07122b;
+      --bg-hero-2: #082540;
+      --accent: #44c2ff;
+      --accent-2: #7ee787;
+      --muted:#9fb0c8;
+      --card:#0d2238;
+      --glass: rgba(255,255,255,0.04);
+      --radius:12px;
+      --shadow: 0 10px 30px rgba(3,9,23,0.5);
+      --text:#eaf6ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:var(--text);
+      background:linear-gradient(180deg,var(--bg-hero-1) 0%, #061326 60%, #07122b 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .app{min-height:100vh;display:flex}
+    .sidebar{
+      width:300px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+      padding:28px;backdrop-filter: blur(6px);border-right:1px solid rgba(255,255,255,0.03);
+    }
+    .brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#2fb6ff);display:grid;place-items:center;font-weight:800;color:#022233;font-size:20px}
+    .brand h3{margin:0;font-size:16px}
+    .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+    .nav{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .nav button{background:transparent;border:0;color:var(--muted);text-align:left;padding:12px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    .nav button.active{background:rgba(255,255,255,0.03);color:var(--text)}
+    .main{flex:1;min-height:100vh;display:flex;flex-direction:column}
+    .topbar{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+    .search{display:flex;gap:10px;align-items:center}
+    .search input{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;color:var(--text);min-width:220px}
+    .header-cta{display:flex;gap:10px;align-items:center}
+    .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent-2),#2db87a);display:grid;place-items:center;color:#022a1f;font-weight:700}
+    .content{padding:24px 32px}
+    .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+    .tab-btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;color:var(--muted);cursor:pointer;font-weight:700}
+    .tab-btn.active{background:linear-gradient(90deg,var(--accent),#2fb6ff);color:#022233;border-color:transparent}
+    .controls{margin-left:auto;display:flex;gap:10px}
+    .btn{padding:10px 14px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),#2fb6ff);color:#022233}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+    .grid{display:grid;grid-template-columns:1fr 420px;gap:20px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .form-row{display:flex;gap:10px;margin-bottom:10px}
+    .form-row input,.form-row select,textarea{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
+    .label{font-size:13px;color:var(--muted);margin-bottom:6px}
+    .signature-preview{height:80px;border:1px dashed rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,0.01)}
+    .logbook-page{width:800px;height:1120px;padding:28px;background:#fff;color:#000;border-radius:6px;box-shadow:0 10px 30px rgba(3,9,23,0.2)}
+    .logbook-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+    .logbook-h1{font-size:18px;font-weight:800}
+    .logbook-table{width:100%;border-collapse:collapse;margin-top:10px}
+    .logbook-table td, .logbook-table th{border:1px solid #222;padding:6px;font-size:12px}
+    .logbook-sec-code{font-weight:700;color:#111}
+    .signature-img{max-width:260px;max-height:80px}
+    @media (max-width:980px){
+      .sidebar{display:none}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">LB</div>
+      <div>
+        <h3>Logbook Master</h3>
+        <p>Road safety first • NHVR-style logbook</p>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <button onclick="selectView('dashboard')" id="nav-dashboard">Dashboard</button>
+      <button onclick="selectView('work')" id="nav-work">Work</button>
+      <button onclick="selectView('rest')" id="nav-rest">Rest</button>
+      <button onclick="selectView('7days')" id="nav-7days">7 Days</button>
+      <button onclick="selectView('14days')" id="nav-14days">14 Days</button>
+      <button onclick="selectView('signature')" id="nav-sign">Signature</button>
+      <button onclick="selectView('logbook')" id="nav-logbook">Logbook</button>
+      <div style="margin-top:18px;color:var(--muted);font-size:12px">Version 1.0 • <a href="https://logbookmaster.vercel.app" style="color:var(--accent)">logbookmaster.vercel.app</a></div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="search">
+        <strong style="font-size:15px">Keep it safe. Drive rested.</strong>
+        <input type="search" placeholder="Search logs, drivers or rego" aria-label="Search">
+      </div>
+      <div class="header-cta">
+        <div class="avatar">A</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="toolbar">
+        <button class="tab-btn active" id="tab-work" onclick="switchTab('work')">Work</button>
+        <button class="tab-btn" id="tab-rest" onclick="switchTab('rest')">Rest</button>
+        <button class="tab-btn" id="tab-7days" onclick="switchTab('7days')">7 Days</button>
+        <button class="tab-btn" id="tab-14days" onclick="switchTab('14days')">14 Days</button>
+        <div class="controls">
+          <button class="btn ghost" onclick="openLogbookEditor()">Edit Details</button>
+          <button class="btn primary" onclick="generatePDF()">Generate PDF</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="card" id="main-panel">
+            <h2 id="panel-title">Work</h2>
+            <p style="color:var(--muted);">Use the tabs to switch between Work/Rest summaries and print logbook pages. Click Generate PDF to create a realistic NHVR-style sample logbook page including driver details and a signature.</p>
+
+            <hr style="margin:12px 0;opacity:0.06">
+
+            <div id="tab-content">
+              <div class="tab-view" id="view-work">
+                <h3>Today's Work</h3>
+                <p>Driving: <strong>3h 20m</strong> • Remaining recommended rest: <strong>7h 40m</strong></p>
+              </div>
+
+              <div class="tab-view" id="view-rest" style="display:none">
+                <h3>Rest</h3>
+                <p>Last rest: <strong>10 hours</strong>. Ensure minimum breaks are observed.</p>
+              </div>
+
+              <div class="tab-view" id="view-7days" style="display:none">
+                <h3>7 Days</h3>
+                <p>Total hours: <strong>38h</strong> • Recommended max: <strong>72h</strong></p>
+              </div>
+
+              <div class="tab-view" id="view-14days" style="display:none">
+                <h3>14 Days</h3>
+                <p>Total hours: <strong>74h</strong> • Review long-haul fatigue management.</p>
+              </div>
+
+              <div class="tab-view" id="view-signature" style="display:none">
+                <h3>Signature</h3>
+                <p class="label">Draw your signature below and click Save. The saved signature will be automatically inserted into generated PDFs.</p>
+                <div style="display:flex;gap:12px;align-items:flex-start;flex-direction:column;">
+                  <div style="background:#fff;padding:8px;border-radius:8px;max-width:560px;">
+                    <canvas id="signature-pad" style="width:100%;height:160px;background:#fff;border-radius:6px"></canvas>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <button class="btn ghost" onclick="clearSignature()">Clear</button>
+                    <button class="btn primary" onclick="saveSignature()">Save Signature</button>
+                    <div style="width:1px;background:rgba(255,255,255,0.06);margin-left:12px"></div>
+                    <div style="display:flex;flex-direction:column">
+                      <div class="label">Saved signature</div>
+                      <div class="signature-preview" id="signature-preview">No signature</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="card">
+            <h3>Quick actions</h3>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn primary" onclick="generatePDF()">Generate PDF</button>
+              <button class="btn ghost" onclick="printPreview()">Print Preview</button>
+            </div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <h3>Driver & Vehicle Details</h3>
+            <div style="margin-top:8px">
+              <div class="label">Driver name</div>
+              <input id="driverName" placeholder="e.g. John Smith" value="John Smith">
+              <div class="label">Licence number / ID</div>
+              <input id="driverId" placeholder="e.g. 12345678" value="12345678">
+              <div class="label">Vehicle registration</div>
+              <input id="vehicleRego" placeholder="e.g. ABC-123" value="ABC-123">
+              <div class="label">Logbook Security Code</div>
+              <input id="securityCode" placeholder="Enter security code" value="SEC-2026-001">
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="card">
+            <h3>Saved signature</h3>
+            <div style="margin-top:8px">
+              <div id="sig-container" class="signature-preview">No signature saved</div>
+              <div style="margin-top:8px;color:var(--muted);font-size:13px">Saved signatures are stored locally in your browser (localStorage). They will be included in generated PDFs.</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="print-area" style="position:fixed;left:-9999px;top:-9999px;">
+</div>
+
+<script>
+  function selectView(v){
+    ['dashboard','work','rest','7days','14days','signature','logbook'].forEach(id=>{
+      const el=document.getElementById('nav-'+id);
+      if(!el) return;
+      if(id===v) el.classList.add('active'); else el.classList.remove('active');
+    });
+    if(v==='signature') switchTab('signature');
+    if(v==='work') switchTab('work');
+  }
+
+  function switchTab(tab){
+    ['work','rest','7days','14days'].forEach(t=>{
+      const b=document.getElementById('tab-'+t);
+      const v=document.getElementById('view-'+t);
+      if(!b||!v) return;
+      if(t===tab){ b.classList.add('active'); v.style.display='block'; document.getElementById('panel-title').innerText = capitalize(t); }
+      else{ b.classList.remove('active'); v.style.display='none'; }
+    });
+    const signView=document.getElementById('view-signature');
+    if(tab==='signature'){ signView.style.display='block'; document.getElementById('panel-title').innerText='Signature'; }
+    else signView.style.display='none';
+  }
+  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+  let signaturePad;
+  function setupSignaturePad(){
+    const canvas = document.getElementById('signature-pad');
+    function resizeCanvas(){
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+      canvas.getContext('2d').scale(ratio, ratio);
+      const data = localStorage.getItem('logbook_signature');
+      if(data){
+        const img = new Image(); img.onload = ()=>{
+          const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.offsetWidth,canvas.offsetHeight);
+        }; img.src = data;
+      }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    signaturePad = new SignaturePad(canvas, {backgroundColor: 'rgba(255,255,255,0)'});
+    loadSavedSignaturePreview();
+  }
+
+  function clearSignature(){ if(signaturePad){ signaturePad.clear(); } }
+
+  function saveSignature(){
+    if(!signaturePad) return alert('Signature pad not ready');
+    if(signaturePad.isEmpty()) return alert('Please draw a signature before saving.');
+    const dataUrl = signaturePad.toDataURL('image/png');
+    localStorage.setItem('logbook_signature', dataUrl);
+    loadSavedSignaturePreview();
+    alert('Signature saved locally. It will be included in generated PDFs.');
+  }
+
+  function loadSavedSignaturePreview(){
+    const preview = document.getElementById('signature-preview');
+    const container = document.getElementById('sig-container');
+    const data = localStorage.getItem('logbook_signature');
+    if(data){
+      preview.innerHTML = '<img src="'+data+'" alt="signature" style="max-height:70px;max-width:100%;object-fit:contain">';
+      container.innerHTML = '<img src="'+data+'" alt="signature" class="signature-img">';
+    } else {
+      preview.innerText='No signature';
+      container.innerText='No signature saved';
+    }
+  }
+
+  async function generatePDF(){
+    const driver = document.getElementById('driverName').value || 'John Smith';
+    const id = document.getElementById('driverId').value || '';
+    const rego = document.getElementById('vehicleRego').value || '';
+    const secCode = document.getElementById('securityCode').value || '';
+    const signatureData = localStorage.getItem('logbook_signature');
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-AU');
+
+    const page = document.createElement('div');
+    page.className = 'logbook-page';
+    page.innerHTML = `
+      <div style="padding:6px">
+        <div class="logbook-header">
+          <div>
+            <div class="logbook-h1">Driver Work Diary / Logbook</div>
+            <div style="font-size:12px;color:#222">Sample NHVR-style page — generated by Logbook Master</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#222">Date: <strong>${dateStr}</strong></div>
+            <div style="font-size:12px;color:#222">Security code: <span class="logbook-sec-code">${escapeHtml(secCode)}</span></div>
+          </div>
+        </div>
+
+        <table style="width:100%;margin-top:12px;border-collapse:collapse;font-size:12px">
+          <tr>
+            <td style="width:50%;vertical-align:top;padding:8px;border:1px solid #222">
+              <strong>Driver</strong><br>${escapeHtml(driver)}<br>ID: ${escapeHtml(id)}
+            </td>
+            <td style="width:50%;vertical-align:top;padding:8px;border:1px solid #222">
+              <strong>Vehicle</strong><br>Rego: ${escapeHtml(rego)}<br>Make/Model: Sample Truck
+            </td>
+          </tr>
+        </table>
+
+        <h4 style="margin-top:12px;margin-bottom:6px">Daily activities</h4>
+        <table class="logbook-table">
+          <tr><th style="width:18%">Start</th><th style="width:18%">End</th><th>Nature of work / details</th><th style="width:14%">Odometer</th></tr>
+          <tr><td>06:30</td><td>09:00</td><td>Driving — delivery run</td><td>120,430</td></tr>
+          <tr><td>09:00</td><td>09:30</td><td>Break / rest</td><td></td></tr>
+          <tr><td>09:30</td><td>12:45</td><td>Driving — long haul</td><td>120,780</td></tr>
+          <tr><td>12:45</td><td>13:30</td><td>Meal break</td><td></td></tr>
+          <tr><td>13:30</td><td>17:15</td><td>Driving — return</td><td>121,120</td></tr>
+        </table>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
+          <div style="width:60%">
+            <div style="font-size:12px;color:#222">Driver signature:</div>
+            <div style="margin-top:6px">${signatureData ? '<img src="'+signatureData+'" alt="signature" style="max-width:100%;height:80px;object-fit:contain">' : '<div style="border:1px dashed #ccc;height:80px;width:100%;display:flex;align-items:center;justify-content:center;color:#666">No signature</div>'}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#222">Prepared by Logbook Master</div>
+            <div style="margin-top:12px;font-size:11px;color:#222">Security code: <strong>${escapeHtml(secCode)}</strong></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const printArea = document.getElementById('print-area');
+    printArea.innerHTML = '';
+    printArea.appendChild(page);
+
+    try {
+      const canvas = await html2canvas(page, {scale:2, useCORS:true, backgroundColor:'#ffffff'});
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({unit:'px',format:[canvas.width, canvas.height]});
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.setProperties({title: 'Logbook - '+dateStr, subject: 'Logbook page', author: 'Logbook Master', keywords: 'logbook,security:'+secCode});
+      pdf.save('logbook-'+dateStr.replace(/\//g,'-')+'.pdf');
+    } catch(err) {
+      console.error(err); alert('Failed to generate PDF: '+err.message);
+    }
+  }
+
+  function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function openLogbookEditor(){ alert('Open logbook editor - inline editing coming soon.'); }
+
+  function printPreview(){ generatePDF(); }
+
+  window.addEventListener('load', ()=>{ setupSignaturePad(); loadSavedSignaturePreview(); });
+</script>
+</body>
+</html>
